@@ -2,6 +2,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'draw/draw_borad.dart';
+import 'draw/draw_line.dart';
+import 'draw/base_draw.dart';
 
 /// 首页
 class HomePage extends StatefulWidget {
@@ -15,6 +18,10 @@ class _HomePageState extends State<HomePage>
     with AutomaticKeepAliveClientMixin {
   String imageUrl = 'assets/images/huaxiong.jpeg';
 
+  /// 绘制手势 key
+  var drawGestureKey = GlobalKey();
+
+  /// 默认缩放信息
   double _scale = 1.0;
   double _tmpScale = 1.0;
   double _moveX = 0.0;
@@ -26,6 +33,24 @@ class _HomePageState extends State<HomePage>
 
   Offset _tmpFocal = Offset.zero;
   Matrix4 matrix4;
+
+  // 画板模式
+  BoradMode boradMode = BoradMode.Zoom;
+  // 颜色列表
+  List<Color> colorList = [
+    Colors.red,
+    Colors.white,
+    Colors.black,
+    Colors.yellow,
+    Colors.green,
+    Colors.blue,
+    Colors.orange,
+  ];
+  //选择颜色
+  Color selectColor = Colors.red;
+  // 绘制集合
+  List<BaseDraw> paintList = [];
+  DrawLine _tempLine;
 
   @override
   bool get wantKeepAlive => true;
@@ -49,31 +74,182 @@ class _HomePageState extends State<HomePage>
             child: Stack(
               children: [
                 Image.asset(imageUrl),
-                GestureDetector(
-                  onScaleStart: (details) {
-                    _tmpFocal = details.focalPoint;
-                    _tmpMoveX = _moveX;
-                    _tmpMoveY = _moveY;
-                    _tmpScale = _scale;
-                    _tmpRotation = _rotation;
+                boradMode == BoradMode.Draw
+                    ? GestureDetector(
+                        key: drawGestureKey,
+                        onPanStart: (details) {
+                          _tempLine = DrawLine();
+                          _tempLine.color = selectColor;
+                          paintList.add(_tempLine);
+                        },
+                        onPanUpdate: (details) {
+                          RenderBox renderBox =
+                              drawGestureKey.currentContext.findRenderObject();
+                          Offset localPos =
+                              renderBox.globalToLocal(details.globalPosition);
+                          if (_tempLine == null) {
+                            _tempLine = DrawLine();
+                            paintList.add(_tempLine);
+                          }
+                          _tempLine.linePath.add(localPos);
+                          paintList.last = _tempLine;
+                          setState(() {});
+                        },
+                        onPanEnd: (details) {
+                          _tempLine = null;
+                        },
+                      )
+                    : SizedBox(),
+                boradMode == BoradMode.Zoom
+                    ? GestureDetector(
+                        onScaleStart: (details) {
+                          _tmpFocal = details.focalPoint;
+                          _tmpMoveX = _moveX;
+                          _tmpMoveY = _moveY;
+                          _tmpScale = _scale;
+                          _tmpRotation = _rotation;
 
-                    debugPrint(
-                        'onScaleStart _tmpFocal:$_tmpFocal _tmpMoveX:$_tmpMoveX _tmpMoveY:$_tmpMoveY _tmpScale:$_tmpScale _tmpRotation:$_tmpRotation details:${details.toString()}');
-                  },
-                  onScaleUpdate: (details) {
-                    _moveX = _tmpMoveX +
-                        (details.focalPoint.dx - _tmpFocal.dx) / _tmpScale;
-                    _moveY = _tmpMoveY +
-                        (details.focalPoint.dy - _tmpFocal.dy) / _tmpScale;
-                    _scale = _tmpScale * details.scale;
-                    _rotation = _tmpRotation + details.rotation;
-                    setState(() {});
-                  },
-                )
+                          debugPrint(
+                              'onScaleStart _tmpFocal:$_tmpFocal _tmpMoveX:$_tmpMoveX _tmpMoveY:$_tmpMoveY _tmpScale:$_tmpScale _tmpRotation:$_tmpRotation details:${details.toString()}');
+                        },
+                        onScaleUpdate: (details) {
+                          debugPrint(
+                              'onScaleUpdate details:${details.toString()}');
+                          _moveX = _tmpMoveX +
+                              (details.focalPoint.dx - _tmpFocal.dx) /
+                                  _tmpScale;
+                          debugPrint(
+                              'onScaleUpdate _moveX:$_moveX _tmpMoveX:$_tmpMoveX _tmpFocal:${_tmpFocal.toString()} _tmpScale:$_tmpScale');
+                          _moveY = _tmpMoveY +
+                              (details.focalPoint.dy - _tmpFocal.dy) /
+                                  _tmpScale;
+                          debugPrint(
+                              'onScaleUpdate _moveY:$_moveY _tmpMoveY:$_tmpMoveY _tmpFocal:${_tmpFocal.toString()} _tmpScale:$_tmpScale');
+                          _scale = _tmpScale * details.scale;
+                          _rotation = _tmpRotation + details.rotation;
+                          setState(() {});
+                        },
+                      )
+                    : SizedBox(),
+                CustomPaint(
+                  painter: DrawBorad(paintList: paintList),
+                ),
               ],
             ),
           ),
         ),
+      ),
+      floatingActionButton: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Visibility(
+            visible: true,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              padding: EdgeInsets.all(10),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: colorList.map((color) {
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        selectColor = color;
+                      });
+                    },
+                    child: Container(
+                      height: 24,
+                      width: 24,
+                      margin: EdgeInsets.all(6),
+                      padding: EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: color,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.white,
+                          width: selectColor == color ? 4 : 2,
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+          SizedBox(height: 20),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              FloatingActionButton(
+                child: Icon(Icons.format_paint_rounded),
+                tooltip: '绘制',
+                backgroundColor:
+                    boradMode == BoradMode.Draw ? Colors.blue : Colors.grey,
+                onPressed: () {
+                  boradMode = BoradMode.Draw;
+                  setState(() {});
+                },
+              ),
+              SizedBox(width: 6),
+              FloatingActionButton(
+                child: Icon(
+                  Icons.fullscreen_rounded,
+                ),
+                backgroundColor:
+                    boradMode == BoradMode.Zoom ? Colors.blue : Colors.grey,
+                tooltip: '缩放',
+                onPressed: () {
+                  boradMode = BoradMode.Zoom;
+                  setState(() {});
+                },
+              ),
+              SizedBox(width: 6),
+              FloatingActionButton(
+                child: Icon(Icons.undo_rounded),
+                tooltip: '回退',
+                backgroundColor:
+                    paintList.isNotEmpty ? Colors.blue : Colors.grey,
+                onPressed: () {
+                  if (paintList.isNotEmpty) {
+                    paintList.removeLast();
+                    setState(() {});
+                  }
+                },
+              ),
+              SizedBox(width: 6),
+              FloatingActionButton(
+                child: Icon(
+                  Icons.clear,
+                ),
+                tooltip: '清空',
+                backgroundColor:
+                    paintList.isNotEmpty ? Colors.blue : Colors.grey,
+                onPressed: () {
+                  paintList = [];
+                  setState(() {});
+                },
+              ),
+              SizedBox(width: 6),
+              FloatingActionButton(
+                child: Icon(
+                  Icons.color_lens_rounded,
+                  color: selectColor,
+                ),
+                tooltip: '颜色',
+                backgroundColor: Colors.lime,
+                onPressed: () {
+                  paintList = [];
+                  setState(() {});
+                },
+              ),
+            ],
+          ),
+          SizedBox(width: 6),
+        ],
       ),
     );
   }
