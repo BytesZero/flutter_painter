@@ -1,8 +1,9 @@
 import 'package:flutter/rendering.dart';
+export 'package:flutter/rendering.dart';
 
 abstract class BaseDraw {
   Offset offset; // 位置
-  Size size; // 大小
+  Size drawSize; // 绘制项大小
   Paint paint = Paint(); // 画笔
 
   /// 绘制

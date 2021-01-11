@@ -9,6 +9,7 @@ class DrawBorad extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    debugPrint('size:${size.toString()}');
     for (var draw in paintList) {
       draw.draw(canvas, size);
     }
@@ -24,4 +25,5 @@ class DrawBorad extends CustomPainter {
 enum BoradMode {
   Draw, // 绘制模式
   Zoom, // 缩放模式
+  Crop, // 裁剪模式
 }

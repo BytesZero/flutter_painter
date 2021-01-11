@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_painter_example/draw/draw_text.dart';
 import 'draw/draw_borad.dart';
 import 'draw/draw_line.dart';
 import 'draw/base_draw.dart';
@@ -132,6 +133,7 @@ class _HomePageState extends State<HomePage>
                       )
                     : SizedBox(),
                 CustomPaint(
+                  size: MediaQuery.of(context).size,
                   painter: DrawBorad(paintList: paintList),
                 ),
               ],
@@ -236,13 +238,18 @@ class _HomePageState extends State<HomePage>
               SizedBox(width: 6),
               FloatingActionButton(
                 child: Icon(
-                  Icons.color_lens_rounded,
+                  Icons.text_fields_rounded,
                   color: selectColor,
                 ),
-                tooltip: '颜色',
-                backgroundColor: Colors.lime,
+                tooltip: '文本',
                 onPressed: () {
-                  paintList = [];
+                  DrawText drawText = DrawText()
+                    ..text =
+                        '花熊使\n用低级方法时dart:ui，习惯上以前缀这些类ui.。\n这也有助于解决命名冲突。例如，TextStyle还可以在绘画库中定义。如果使用了TextStyle，则您需要为单个样式dart:ui使用编码，TextStyle().getTextStyle()或TextStyle().build()递归地应用样式树。'
+                    ..drawSize = Size(100, 100)
+                    ..offset = Offset(80, 80)
+                    ..color = selectColor;
+                  paintList.add(drawText);
                   setState(() {});
                 },
               ),
