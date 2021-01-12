@@ -123,11 +123,14 @@ class _HomePageState extends State<HomePage>
                             // 遍历查看是否命中事件
                             for (var item in textList) {
                               Rect textRect = item.textRect;
+                              // Rect newTextRect = textRect.deflate(delta);
+                              debugPrint(
+                                  'onTapDown lp:${lp.toString()} textRect:${textRect.toString()} scale:${item.scale}');
                               //计算是否命中事件
                               if (lp.dx >= textRect.left &&
-                                  lp.dx <= textRect.right &&
+                                  lp.dx <= (textRect.right * item.scale) &&
                                   lp.dy >= textRect.top &&
-                                  lp.dy <= textRect.bottom) {
+                                  lp.dy <= (textRect.bottom * item.scale)) {
                                 debugPrint('onTapDown 命中🎯');
                                 _tempText = item;
                                 _tempText.selected = true;
@@ -167,7 +170,9 @@ class _HomePageState extends State<HomePage>
                                   (details.focalPoint.dy - _tmpFocal.dy) /
                                       _tmpScale;
                               _tempText.offset = Offset(textMoveX, textMoveY);
-                              // _tempText.scale = _tmpScale * details.scale;
+                              _tempText.scale = _tmpScale * details.scale;
+                              debugPrint(
+                                  'onScaleUpdateScale _tmpScale:$_tmpScale scale:${_tempText.scale} details.scale:${details.scale}');
                             } else {
                               debugPrint(
                                   'onScaleUpdate details:${details.toString()}');
