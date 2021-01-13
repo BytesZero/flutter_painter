@@ -3,6 +3,7 @@ import 'package:flutter_painter_example/draw/draw_text.dart';
 import 'draw/draw_borad.dart';
 import 'draw/draw_line.dart';
 import 'draw/base_draw.dart';
+import 'edit_text_page.dart';
 
 /// 首页
 class HomePage extends StatefulWidget {
@@ -164,6 +165,7 @@ class _HomePageState extends State<HomePage>
               FloatingActionButton(
                 child: Icon(Icons.format_paint_rounded),
                 tooltip: '绘制',
+                heroTag: 'draw',
                 backgroundColor:
                     boradMode == BoradMode.Draw ? Colors.blue : Colors.grey,
                 onPressed: () {
@@ -179,6 +181,7 @@ class _HomePageState extends State<HomePage>
                 backgroundColor:
                     boradMode == BoradMode.Zoom ? Colors.blue : Colors.grey,
                 tooltip: '缩放',
+                heroTag: 'scale',
                 onPressed: () {
                   boradMode = BoradMode.Zoom;
                   setState(() {});
@@ -188,6 +191,7 @@ class _HomePageState extends State<HomePage>
               FloatingActionButton(
                 child: Icon(Icons.undo_rounded),
                 tooltip: '回退',
+                heroTag: 'undo',
                 backgroundColor:
                     paintList.isNotEmpty ? Colors.blue : Colors.grey,
                 onPressed: () {
@@ -203,6 +207,7 @@ class _HomePageState extends State<HomePage>
                   Icons.clear,
                 ),
                 tooltip: '清空',
+                heroTag: 'clear',
                 backgroundColor:
                     paintList.isNotEmpty ? Colors.blue : Colors.grey,
                 onPressed: () {
@@ -217,15 +222,9 @@ class _HomePageState extends State<HomePage>
                   color: selectColor,
                 ),
                 tooltip: '文本',
+                heroTag: 'text',
                 onPressed: () {
-                  DrawText drawText = DrawText()
-                    ..text = '花熊是\n最可爱的狗狗🐶'
-                    ..drawSize = Size(0, 0)
-                    ..offset = Offset(80, 80)
-                    ..fontSize = (12 + paintList.length.toDouble())
-                    ..color = selectColor;
-                  paintList.add(drawText);
-                  setState(() {});
+                  showEditTextDialog();
                 },
               ),
             ],
@@ -254,8 +253,6 @@ class _HomePageState extends State<HomePage>
         _tempText = null;
         setState(() {});
         return;
-      } else {
-        _tempText.selected = false;
       }
     }
 
@@ -272,12 +269,22 @@ class _HomePageState extends State<HomePage>
           lp.dy >= textRect.top &&
           lp.dy <= textRect.bottom) {
         debugPrint('onTapDown 命中🎯');
-        _tempText = item;
-        _tempText.selected = true;
-        setState(() {});
+
+        // 命中的是上次命中的，那么触发编辑
+        if (item.selected) {
+          showEditTextDialog(drawText: item);
+        } else {
+          // 先设置为不选中状态
+          _tempText?.selected = false;
+          // 然后赋值设置为选中状态
+          _tempText = item;
+          _tempText.selected = true;
+          setState(() {});
+        }
         break;
       } else {
         debugPrint('onTapDown 未命中');
+        item.selected = false;
         _tempText = null;
         setState(() {});
       }
@@ -338,5 +345,43 @@ class _HomePageState extends State<HomePage>
     _tempLine.linePath.add(localPos);
     paintList.last = _tempLine;
     setState(() {});
+  }
+
+  /// 现实文字输入框
+  Future<void> showEditTextDialog({DrawText drawText}) async {
+    //弹出文字输入框
+    var result = await showDialog(
+      context: context,
+      builder: (context) {
+        return EditTextPage(
+          text: drawText?.text,
+          color: drawText?.color,
+        );
+      },
+    );
+    // 获取文字结果
+    if (result != null) {
+      String text = result['text'];
+      int colorValue = result['color'];
+      debugPrint('showEditTextPage text:$text colorValue:$colorValue');
+      Color textColor = Color(colorValue);
+      if (drawText == null) {
+        double padding = MediaQuery.of(context).padding.bottom;
+        Offset center = MediaQuery.of(context).size.center(Offset(0, padding));
+        DrawText newDrawText = DrawText()
+          ..text = text ?? ''
+          ..drawSize = Size(0, 0)
+          ..offset = center
+          ..fontSize = 14
+          ..color = textColor;
+        paintList.add(newDrawText);
+      } else {
+        drawText
+          ..text = text
+          ..color = textColor;
+      }
+
+      setState(() {});
+    }
   }
 }
