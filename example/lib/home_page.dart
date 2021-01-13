@@ -1,7 +1,4 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_painter_example/draw/draw_text.dart';
 import 'draw/draw_borad.dart';
 import 'draw/draw_line.dart';
@@ -81,7 +78,7 @@ class _HomePageState extends State<HomePage>
             alignment: FractionalOffset.center,
             child: Stack(
               children: [
-                Image.asset(imageUrl),
+                Center(child: Image.asset(imageUrl)),
                 CustomPaint(
                   size: Size.infinite,
                   painter: DrawBorad(paintList: paintList),
@@ -93,125 +90,22 @@ class _HomePageState extends State<HomePage>
                           },
                           onTap: () {
                             debugPrint('onTap');
-                            Offset lp = _tempTapDownDetails.localPosition;
-                            debugPrint('onTapDown details:${lp.toString()}');
-                            debugPrint(
-                                'onTapDown _tempText:${_tempText.toString()}');
-                            if (_tempText != null) {
-                              /// 计算是否命中删除区域
-                              double delRadius = _tempText.delRadius;
-                              Rect tempTextRect = _tempText.textRect;
-                              // tempTextRect = tempTextRect.deflate(
-                              //     (tempTextRect.right - tempTextRect.left) *
-                              //         _tempText.scale);
-                              if (_tempText.selected &&
-                                  lp.dx >= (tempTextRect.left - delRadius) &&
-                                  lp.dx <= (tempTextRect.left + delRadius) &&
-                                  lp.dy >= (tempTextRect.top - delRadius) &&
-                                  lp.dy <= (tempTextRect.top + delRadius)) {
-                                paintList.remove(_tempText);
-                                _tempText = null;
-                                setState(() {});
-                                return;
-                              } else {
-                                _tempText.selected = false;
-                              }
-                            }
-
-                            /// 只获取文字
-                            var textList = paintList.whereType<DrawText>();
-                            // 遍历查看是否命中事件
-                            for (var item in textList) {
-                              Rect textRect = item.textRect;
-                              // Rect newTextRect = textRect.deflate(delta);
-                              debugPrint(
-                                  'onTapDown lp:${lp.toString()} textRect:${textRect.toString()} scale:${item.scale}');
-                              //计算是否命中事件
-                              if (lp.dx >= textRect.left &&
-                                  lp.dx <= (textRect.right * item.scale) &&
-                                  lp.dy >= textRect.top &&
-                                  lp.dy <= (textRect.bottom * item.scale)) {
-                                debugPrint('onTapDown 命中🎯');
-                                _tempText = item;
-                                _tempText.selected = true;
-                                setState(() {});
-                                break;
-                              } else {
-                                debugPrint('onTapDown 未命中');
-                                _tempText = null;
-                                setState(() {});
-                              }
-                            }
+                            handleOnTap();
                           },
                           onScaleStart: (details) {
-                            _tmpFocal = details.focalPoint;
-                            if (_tempText != null && _tempText.selected) {
-                              _tmpMoveX = _tempText.offset.dx;
-                              _tmpMoveY = _tempText.offset.dy;
-                              _tmpScale = _tempText.scale;
-                            } else {
-                              _tmpMoveX = _moveX;
-                              _tmpMoveY = _moveY;
-                              _tmpScale = _scale;
-                              _tmpRotation = _rotation;
-                            }
-
-                            debugPrint(
-                                'onScaleStart _tmpFocal:$_tmpFocal _tmpMoveX:$_tmpMoveX _tmpMoveY:$_tmpMoveY _tmpScale:$_tmpScale _tmpRotation:$_tmpRotation details:${details.toString()}');
+                            handleOnScaleStart(details);
                           },
                           onScaleUpdate: (details) {
-                            if (_tempText != null && _tempText.selected) {
-                              double textMoveX = _tmpMoveX +
-                                  (details.focalPoint.dx - _tmpFocal.dx) /
-                                      _tmpScale;
-                              debugPrint(
-                                  'onScaleUpdate _moveX:$_moveX _tmpMoveX:$_tmpMoveX _tmpFocal:${_tmpFocal.toString()} _tmpScale:$_tmpScale');
-                              double textMoveY = _tmpMoveY +
-                                  (details.focalPoint.dy - _tmpFocal.dy) /
-                                      _tmpScale;
-                              _tempText.offset = Offset(textMoveX, textMoveY);
-                              _tempText.scale = _tmpScale * details.scale;
-                              debugPrint(
-                                  'onScaleUpdateScale _tmpScale:$_tmpScale scale:${_tempText.scale} details.scale:${details.scale}');
-                            } else {
-                              debugPrint(
-                                  'onScaleUpdate details:${details.toString()}');
-                              _moveX = _tmpMoveX +
-                                  (details.focalPoint.dx - _tmpFocal.dx) /
-                                      _tmpScale;
-                              debugPrint(
-                                  'onScaleUpdate _moveX:$_moveX _tmpMoveX:$_tmpMoveX _tmpFocal:${_tmpFocal.toString()} _tmpScale:$_tmpScale');
-                              _moveY = _tmpMoveY +
-                                  (details.focalPoint.dy - _tmpFocal.dy) /
-                                      _tmpScale;
-                              debugPrint(
-                                  'onScaleUpdate _moveY:$_moveY _tmpMoveY:$_tmpMoveY _tmpFocal:${_tmpFocal.toString()} _tmpScale:$_tmpScale');
-                              _scale = _tmpScale * details.scale;
-                              _rotation = _tmpRotation + details.rotation;
-                            }
-
-                            setState(() {});
+                            handleOnScaleUpdate(details);
                           },
                         )
                       : GestureDetector(
                           key: drawGestureKey,
                           onPanStart: (details) {
-                            _tempLine = DrawLine();
-                            _tempLine.color = selectColor;
-                            paintList.add(_tempLine);
+                            handleOnPanStart();
                           },
                           onPanUpdate: (details) {
-                            RenderBox renderBox = drawGestureKey.currentContext
-                                .findRenderObject();
-                            Offset localPos =
-                                renderBox.globalToLocal(details.globalPosition);
-                            if (_tempLine == null) {
-                              _tempLine = DrawLine();
-                              paintList.add(_tempLine);
-                            }
-                            _tempLine.linePath.add(localPos);
-                            paintList.last = _tempLine;
-                            setState(() {});
+                            handleOnPanUpdate(details);
                           },
                           onPanEnd: (details) {
                             _tempLine = null;
@@ -340,5 +234,109 @@ class _HomePageState extends State<HomePage>
         ],
       ),
     );
+  }
+
+  /// 处理点击事件
+  void handleOnTap() {
+    Offset lp = _tempTapDownDetails.localPosition;
+    debugPrint('onTapDown details:${lp.toString()}');
+    debugPrint('onTapDown _tempText:${_tempText.toString()}');
+    if (_tempText != null) {
+      /// 计算是否命中删除区域
+      double delRadius = _tempText.delRadius;
+      Rect tempTextRect = _tempText.textRect;
+      if (_tempText.selected &&
+          lp.dx >= (tempTextRect.left - delRadius) &&
+          lp.dx <= (tempTextRect.left + delRadius) &&
+          lp.dy >= (tempTextRect.top - delRadius) &&
+          lp.dy <= (tempTextRect.top + delRadius)) {
+        paintList.remove(_tempText);
+        _tempText = null;
+        setState(() {});
+        return;
+      } else {
+        _tempText.selected = false;
+      }
+    }
+
+    /// 只获取文字
+    var textList = paintList.whereType<DrawText>();
+    // 遍历查看是否命中事件
+    for (var item in textList) {
+      Rect textRect = item.textRect;
+      debugPrint(
+          'onTapDown lp:${lp.toString()} textRect:${textRect.toString()} scale:${item.scale}');
+      //计算是否命中事件
+      if (lp.dx >= textRect.left &&
+          lp.dx <= textRect.right &&
+          lp.dy >= textRect.top &&
+          lp.dy <= textRect.bottom) {
+        debugPrint('onTapDown 命中🎯');
+        _tempText = item;
+        _tempText.selected = true;
+        setState(() {});
+        break;
+      } else {
+        debugPrint('onTapDown 未命中');
+        _tempText = null;
+        setState(() {});
+      }
+    }
+  }
+
+  /// 处理缩放移动开始事件
+  void handleOnScaleStart(ScaleStartDetails details) {
+    _tmpFocal = details.focalPoint;
+    if (_tempText != null && _tempText.selected) {
+      _tmpMoveX = _tempText.offset.dx;
+      _tmpMoveY = _tempText.offset.dy;
+      _tmpScale = _tempText.scale;
+    } else {
+      _tmpMoveX = _moveX;
+      _tmpMoveY = _moveY;
+      _tmpScale = _scale;
+      _tmpRotation = _rotation;
+    }
+  }
+
+  /// 处理缩放移动更新事件
+  void handleOnScaleUpdate(ScaleUpdateDetails details) {
+    if (_tempText != null && _tempText.selected) {
+      double textMoveX = _tmpMoveX + (details.focalPoint.dx - _tmpFocal.dx);
+      double textMoveY = _tmpMoveY + (details.focalPoint.dy - _tmpFocal.dy);
+      _tempText.offset = Offset(textMoveX, textMoveY);
+      _tempText.scale = _tmpScale * details.scale;
+    } else {
+      _moveX = _tmpMoveX + (details.focalPoint.dx - _tmpFocal.dx) / _tmpScale;
+      debugPrint(
+          'onScaleUpdate _moveX:$_moveX _tmpMoveX:$_tmpMoveX _tmpFocal:${_tmpFocal.toString()} _tmpScale:$_tmpScale');
+      _moveY = _tmpMoveY + (details.focalPoint.dy - _tmpFocal.dy) / _tmpScale;
+      debugPrint(
+          'onScaleUpdate _moveY:$_moveY _tmpMoveY:$_tmpMoveY _tmpFocal:${_tmpFocal.toString()} _tmpScale:$_tmpScale');
+      _scale = _tmpScale * details.scale;
+      _rotation = _tmpRotation + details.rotation;
+    }
+
+    setState(() {});
+  }
+
+  /// 处理滑动开始事件
+  void handleOnPanStart() {
+    _tempLine = DrawLine();
+    _tempLine.color = selectColor;
+    paintList.add(_tempLine);
+  }
+
+  /// 处理滑动更新事件
+  void handleOnPanUpdate(DragUpdateDetails details) {
+    RenderBox renderBox = drawGestureKey.currentContext.findRenderObject();
+    Offset localPos = renderBox.globalToLocal(details.globalPosition);
+    if (_tempLine == null) {
+      _tempLine = DrawLine();
+      paintList.add(_tempLine);
+    }
+    _tempLine.linePath.add(localPos);
+    paintList.last = _tempLine;
+    setState(() {});
   }
 }

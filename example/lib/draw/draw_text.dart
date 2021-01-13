@@ -26,10 +26,9 @@ class DrawText extends BaseDraw {
       return;
     }
     canvas.save();
-    // 缩放
-    canvas.scale(scale);
+
     // 设置央视
-    TextStyle style = TextStyle(fontSize: fontSize, color: color);
+    TextStyle style = TextStyle(fontSize: fontSize * scale, color: color);
     // 设置问绷
     TextSpan textSpan = TextSpan(
       text: text,
@@ -43,6 +42,7 @@ class DrawText extends BaseDraw {
     );
     // 布局文字
     tp.layout(minWidth: drawSize.width, maxWidth: size.width - offset.dx - 4);
+
     // 绘制文字
     tp.paint(canvas, offset);
     if (selected) {
@@ -58,7 +58,6 @@ class DrawText extends BaseDraw {
         textRect,
         paint,
       );
-      canvas.save();
 
       /// 设置删除画笔
       paint.style = PaintingStyle.fill;
@@ -80,8 +79,8 @@ class DrawText extends BaseDraw {
         Offset(textRect.left - xRadius, textRect.top + xRadius),
         paint,
       );
-      canvas.restore();
     }
+
     canvas.restore();
   }
 }
