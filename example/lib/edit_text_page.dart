@@ -56,35 +56,38 @@ class _EditTextPageState extends State<EditTextPage> {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.pop(context, {
-                'text': _editingController?.text ?? '',
-                'color': selectColor.value,
-              });
+              popPage(context);
             },
             child: Text('保存'),
           )
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Center(
-          child: TextField(
-            controller: _editingController,
-            minLines: 1,
-            maxLines: 8,
-            autofocus: true,
-            cursorHeight: 40,
-            style: TextStyle(
-              fontSize: 24,
-              color: selectColor,
-            ),
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              disabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
-              errorBorder: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedErrorBorder: InputBorder.none,
+      body: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () {
+          popPage(context);
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Center(
+            child: TextField(
+              controller: _editingController,
+              minLines: 1,
+              maxLines: 8,
+              autofocus: true,
+              cursorHeight: 40,
+              style: TextStyle(
+                fontSize: 24,
+                color: selectColor,
+              ),
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                disabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                errorBorder: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedErrorBorder: InputBorder.none,
+              ),
             ),
           ),
         ),
@@ -92,7 +95,6 @@ class _EditTextPageState extends State<EditTextPage> {
       bottomSheet: Container(
         decoration: BoxDecoration(
           color: Colors.black.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(20),
         ),
         padding: EdgeInsets.all(10),
         child: Row(
@@ -123,5 +125,12 @@ class _EditTextPageState extends State<EditTextPage> {
         ),
       ),
     );
+  }
+
+  void popPage(BuildContext context) {
+    Navigator.pop(context, {
+      'text': _editingController?.text ?? '',
+      'color': selectColor.value,
+    });
   }
 }
