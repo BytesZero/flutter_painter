@@ -40,6 +40,8 @@ class _HomePageState extends State<HomePage>
 
   // 画板模式
   BoradMode boradMode = BoradMode.Zoom;
+  //选择颜色
+  Color selectColor = Colors.red;
   // 颜色列表
   List<Color> colorList = [
     Colors.red,
@@ -51,7 +53,15 @@ class _HomePageState extends State<HomePage>
     Colors.orange,
   ];
   //选择颜色
-  Color selectColor = Colors.red;
+  double brushWidth = 4;
+  // 笔刷粗细列表
+  List<double> brushWidthList = [
+    1,
+    2,
+    4,
+    6,
+    8,
+  ];
   // 绘制集合
   List<BaseDraw> paintList = [];
   // 临时线
@@ -136,7 +146,7 @@ class _HomePageState extends State<HomePage>
               color: Colors.black.withOpacity(0.1),
               borderRadius: BorderRadius.circular(20),
             ),
-            padding: EdgeInsets.all(10),
+            padding: EdgeInsets.all(4),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: colorList.map((color) {
@@ -162,6 +172,57 @@ class _HomePageState extends State<HomePage>
                       ),
                     ),
                   ),
+                );
+              }).toList(),
+            ),
+          ),
+          SizedBox(height: 10),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            padding: EdgeInsets.all(4),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: brushWidthList.map((width) {
+                return GestureDetector(
+                  onTap: () {
+                    brushWidth = width;
+                    setState(() {});
+                  },
+                  child: Container(
+                      height: 36,
+                      width: 36,
+                      margin: EdgeInsets.all(6),
+                      padding: EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: brushWidth == width
+                              ? Colors.white
+                              : Colors.transparent,
+                          width: 2,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.brush_rounded,
+                            size: 16,
+                            color: brushWidth == width
+                                ? selectColor
+                                : Colors.white,
+                          ),
+                          Container(
+                            color: brushWidth == width
+                                ? selectColor
+                                : Colors.white,
+                            height: width,
+                            width: 18,
+                          ),
+                        ],
+                      )),
                 );
               }).toList(),
             ),
@@ -346,8 +407,9 @@ class _HomePageState extends State<HomePage>
 
   /// 处理滑动开始事件
   void handleOnPanStart() {
-    _tempLine = DrawLine();
-    _tempLine.color = selectColor;
+    _tempLine = DrawLine()
+      ..color = selectColor
+      ..lineWidth = brushWidth;
     paintList.add(_tempLine);
   }
 
