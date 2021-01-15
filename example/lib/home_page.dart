@@ -18,7 +18,9 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage>
     with AutomaticKeepAliveClientMixin {
-  String imageUrl = 'assets/images/huaxiong.jpeg';
+  String imageUrl1 = 'assets/images/huaxiong.jpeg';
+  String imageUrl2 = 'assets/images/big_img_01.jpg';
+  String imageUrl3 = 'assets/images/img_01.jpg';
   // 绘制转成图片的 key
   GlobalKey drawToImageKey = GlobalKey();
 
@@ -90,48 +92,51 @@ class _HomePageState extends State<HomePage>
         color: Colors.white,
         child: RepaintBoundary(
           key: drawToImageKey,
-          child: Center(
-            child: Transform(
-              transform: matrix4,
-              alignment: FractionalOffset.center,
-              child: Stack(
-                children: [
-                  Center(child: Image.asset(imageUrl)),
-                  CustomPaint(
-                    size: Size.infinite,
-                    painter: DrawBorad(paintList: paintList),
-                    child: boradMode == BoradMode.Zoom
-                        ? GestureDetector(
-                            onTapDown: (details) {
-                              // 设置按下事件信息
-                              _tempTapDownDetails = details;
-                            },
-                            onTap: () {
-                              debugPrint('onTap');
-                              handleOnTap();
-                            },
-                            onScaleStart: (details) {
-                              handleOnScaleStart(details);
-                            },
-                            onScaleUpdate: (details) {
-                              handleOnScaleUpdate(details);
-                            },
-                          )
-                        : GestureDetector(
-                            key: drawGestureKey,
-                            onPanStart: (details) {
-                              handleOnPanStart();
-                            },
-                            onPanUpdate: (details) {
-                              handleOnPanUpdate(details);
-                            },
-                            onPanEnd: (details) {
-                              _tempLine = null;
-                            },
-                          ),
+          child: Transform(
+            transform: matrix4,
+            alignment: FractionalOffset.center,
+            child: Stack(
+              children: [
+                Center(
+                  child: Image.asset(
+                    imageUrl3,
+                    fit: BoxFit.cover,
                   ),
-                ],
-              ),
+                ),
+                CustomPaint(
+                  size: Size.infinite,
+                  painter: DrawBorad(paintList: paintList),
+                  child: boradMode == BoradMode.Zoom
+                      ? GestureDetector(
+                          onTapDown: (details) {
+                            // 设置按下事件信息
+                            _tempTapDownDetails = details;
+                          },
+                          onTap: () {
+                            debugPrint('onTap');
+                            handleOnTap();
+                          },
+                          onScaleStart: (details) {
+                            handleOnScaleStart(details);
+                          },
+                          onScaleUpdate: (details) {
+                            handleOnScaleUpdate(details);
+                          },
+                        )
+                      : GestureDetector(
+                          key: drawGestureKey,
+                          onPanStart: (details) {
+                            handleOnPanStart();
+                          },
+                          onPanUpdate: (details) {
+                            handleOnPanUpdate(details);
+                          },
+                          onPanEnd: (details) {
+                            _tempLine = null;
+                          },
+                        ),
+                ),
+              ],
             ),
           ),
         ),
@@ -141,90 +146,101 @@ class _HomePageState extends State<HomePage>
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            padding: EdgeInsets.all(4),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: colorList.map((color) {
-                return GestureDetector(
-                  onTap: () {
-                    selectColor = color;
-                    if (_tempText != null && _tempText.selected) {
-                      _tempText.color = selectColor;
-                    }
-                    setState(() {});
-                  },
-                  child: Container(
-                    height: 24,
-                    width: 24,
-                    margin: EdgeInsets.all(6),
-                    padding: EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: color,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Colors.white,
-                        width: selectColor == color ? 4 : 2,
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-          SizedBox(height: 10),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            padding: EdgeInsets.all(4),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: brushWidthList.map((width) {
-                return GestureDetector(
-                  onTap: () {
-                    brushWidth = width;
-                    setState(() {});
-                  },
-                  child: Container(
-                      height: 36,
-                      width: 36,
+          AnimatedOpacity(
+            duration: Duration(milliseconds: 600),
+            opacity: boradMode == BoradMode.Draw ? 1 : 0,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              padding: EdgeInsets.all(4),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: colorList.map((color) {
+                  return GestureDetector(
+                    onTap: () {
+                      selectColor = color;
+                      if (_tempText != null && _tempText.selected) {
+                        _tempText.color = selectColor;
+                      }
+                      setState(() {});
+                    },
+                    child: Container(
+                      height: 24,
+                      width: 24,
                       margin: EdgeInsets.all(6),
                       padding: EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
+                        color: color,
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: brushWidth == width
-                              ? Colors.white
-                              : Colors.transparent,
-                          width: 2,
+                          color: Colors.white,
+                          width: selectColor == color ? 4 : 2,
                         ),
                       ),
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.brush_rounded,
-                            size: 16,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+          SizedBox(height: 10),
+          AnimatedOpacity(
+            duration: Duration(milliseconds: 300),
+            opacity: boradMode == BoradMode.Draw ? 1 : 0,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(30),
+              ),
+              padding: EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: brushWidthList.map((width) {
+                  return GestureDetector(
+                    onTap: () {
+                      brushWidth = width;
+                      setState(() {});
+                    },
+                    child: Container(
+                        height: 36,
+                        width: 36,
+                        margin: EdgeInsets.all(6),
+                        padding: EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          border: Border.all(
                             color: brushWidth == width
-                                ? selectColor
-                                : Colors.white,
+                                ? Colors.white
+                                : Colors.transparent,
+                            width: 2,
                           ),
-                          Container(
-                            color: brushWidth == width
-                                ? selectColor
-                                : Colors.white,
-                            height: width,
-                            width: 18,
-                          ),
-                        ],
-                      )),
-                );
-              }).toList(),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.brush_rounded,
+                              size: 16,
+                              color: brushWidth == width
+                                  ? selectColor
+                                  : Colors.black54,
+                            ),
+                            Container(
+                              height: width,
+                              width: 18,
+                              decoration: BoxDecoration(
+                                color: brushWidth == width
+                                    ? selectColor
+                                    : Colors.black87,
+                                borderRadius: BorderRadius.circular(width),
+                              ),
+                            ),
+                          ],
+                        )),
+                  );
+                }).toList(),
+              ),
             ),
           ),
           SizedBox(height: 20),
