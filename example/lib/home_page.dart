@@ -1,8 +1,11 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_painter_example/draw/draw_text.dart';
+import 'dart:ui' as ui;
 import 'draw/draw_borad.dart';
 import 'draw/draw_line.dart';
 import 'draw/base_draw.dart';
+import 'draw/draw_text.dart';
 import 'edit_text_page.dart';
 
 /// 首页
@@ -16,6 +19,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage>
     with AutomaticKeepAliveClientMixin {
   String imageUrl = 'assets/images/huaxiong.jpeg';
+  // 绘制转成图片的 key
+  GlobalKey drawToImageKey = GlobalKey();
 
   /// 绘制手势 key
   var drawGestureKey = GlobalKey();
@@ -73,47 +78,50 @@ class _HomePageState extends State<HomePage>
       ),
       body: Container(
         color: Colors.white,
-        child: Center(
-          child: Transform(
-            transform: matrix4,
-            alignment: FractionalOffset.center,
-            child: Stack(
-              children: [
-                Center(child: Image.asset(imageUrl)),
-                CustomPaint(
-                  size: Size.infinite,
-                  painter: DrawBorad(paintList: paintList),
-                  child: boradMode == BoradMode.Zoom
-                      ? GestureDetector(
-                          onTapDown: (details) {
-                            // 设置按下事件信息
-                            _tempTapDownDetails = details;
-                          },
-                          onTap: () {
-                            debugPrint('onTap');
-                            handleOnTap();
-                          },
-                          onScaleStart: (details) {
-                            handleOnScaleStart(details);
-                          },
-                          onScaleUpdate: (details) {
-                            handleOnScaleUpdate(details);
-                          },
-                        )
-                      : GestureDetector(
-                          key: drawGestureKey,
-                          onPanStart: (details) {
-                            handleOnPanStart();
-                          },
-                          onPanUpdate: (details) {
-                            handleOnPanUpdate(details);
-                          },
-                          onPanEnd: (details) {
-                            _tempLine = null;
-                          },
-                        ),
-                ),
-              ],
+        child: RepaintBoundary(
+          key: drawToImageKey,
+          child: Center(
+            child: Transform(
+              transform: matrix4,
+              alignment: FractionalOffset.center,
+              child: Stack(
+                children: [
+                  Center(child: Image.asset(imageUrl)),
+                  CustomPaint(
+                    size: Size.infinite,
+                    painter: DrawBorad(paintList: paintList),
+                    child: boradMode == BoradMode.Zoom
+                        ? GestureDetector(
+                            onTapDown: (details) {
+                              // 设置按下事件信息
+                              _tempTapDownDetails = details;
+                            },
+                            onTap: () {
+                              debugPrint('onTap');
+                              handleOnTap();
+                            },
+                            onScaleStart: (details) {
+                              handleOnScaleStart(details);
+                            },
+                            onScaleUpdate: (details) {
+                              handleOnScaleUpdate(details);
+                            },
+                          )
+                        : GestureDetector(
+                            key: drawGestureKey,
+                            onPanStart: (details) {
+                              handleOnPanStart();
+                            },
+                            onPanUpdate: (details) {
+                              handleOnPanUpdate(details);
+                            },
+                            onPanEnd: (details) {
+                              _tempLine = null;
+                            },
+                          ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -163,6 +171,15 @@ class _HomePageState extends State<HomePage>
             mainAxisSize: MainAxisSize.min,
             children: [
               FloatingActionButton(
+                child: Icon(Icons.save_alt_rounded),
+                tooltip: '保存',
+                heroTag: 'save',
+                onPressed: () {
+                  saveToImage();
+                },
+              ),
+              SizedBox(width: 2),
+              FloatingActionButton(
                 child: Icon(Icons.format_paint_rounded),
                 tooltip: '绘制',
                 heroTag: 'draw',
@@ -173,7 +190,7 @@ class _HomePageState extends State<HomePage>
                   setState(() {});
                 },
               ),
-              SizedBox(width: 6),
+              SizedBox(width: 2),
               FloatingActionButton(
                 child: Icon(
                   Icons.fullscreen_rounded,
@@ -187,7 +204,7 @@ class _HomePageState extends State<HomePage>
                   setState(() {});
                 },
               ),
-              SizedBox(width: 6),
+              SizedBox(width: 2),
               FloatingActionButton(
                 child: Icon(Icons.undo_rounded),
                 tooltip: '回退',
@@ -201,7 +218,7 @@ class _HomePageState extends State<HomePage>
                   }
                 },
               ),
-              SizedBox(width: 6),
+              SizedBox(width: 2),
               FloatingActionButton(
                 child: Icon(
                   Icons.clear,
@@ -215,7 +232,7 @@ class _HomePageState extends State<HomePage>
                   setState(() {});
                 },
               ),
-              SizedBox(width: 6),
+              SizedBox(width: 2),
               FloatingActionButton(
                 child: Icon(
                   Icons.text_fields_rounded,
@@ -383,5 +400,42 @@ class _HomePageState extends State<HomePage>
 
       setState(() {});
     }
+  }
+
+  // 保存为图片
+  Future<void> saveToImage() async {
+    /// 恢复到默认状态
+    _scale = 1.0;
+    _moveX = 0;
+    _moveY = 0;
+    setState(() {});
+    await Future.delayed(Duration(milliseconds: 300));
+
+    /// 开始保存图片
+    RenderRepaintBoundary boundary =
+        drawToImageKey.currentContext.findRenderObject();
+    ui.Image image = await boundary.toImage(pixelRatio: 3);
+    ByteData byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    Uint8List pngBytes = byteData.buffer.asUint8List();
+    print(pngBytes);
+
+    /// 显示图片
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('保存的图片'),
+          content: Container(
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Colors.grey,
+                width: 1,
+              ),
+            ),
+            child: Image.memory(pngBytes),
+          ),
+        );
+      },
+    );
   }
 }
