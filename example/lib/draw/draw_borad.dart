@@ -26,4 +26,5 @@ enum BoradMode {
   Draw, // 绘制模式
   Zoom, // 缩放模式
   Crop, // 裁剪模式
+  Edit, // 编辑模式
 }

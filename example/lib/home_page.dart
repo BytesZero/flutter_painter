@@ -1,5 +1,7 @@
+import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 import 'draw/draw_borad.dart';
@@ -40,6 +42,8 @@ class _HomePageState extends State<HomePage>
   Offset _tmpFocal = Offset.zero;
   Matrix4 matrix4;
 
+  // 按下手指个数
+  int pointerCount = 0;
   // 画板模式
   BoradMode boradMode = BoradMode.Zoom;
   //选择颜色
@@ -80,10 +84,11 @@ class _HomePageState extends State<HomePage>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     matrix4 = Matrix4.identity()
       ..scale(_scale, _scale)
-      ..translate(_moveX, _moveY);
-    // ..rotateZ(_rotation);
+      ..translate(_moveX, _moveY)
+      ..rotateZ(_rotation);
     return Scaffold(
       appBar: AppBar(
         title: Text('Flutter Painter Demo'),
@@ -99,42 +104,71 @@ class _HomePageState extends State<HomePage>
               children: [
                 Center(
                   child: Image.asset(
-                    imageUrl3,
+                    imageUrl2,
                     fit: BoxFit.cover,
                   ),
                 ),
                 CustomPaint(
                   size: Size.infinite,
                   painter: DrawBorad(paintList: paintList),
-                  child: boradMode == BoradMode.Zoom
-                      ? GestureDetector(
-                          onTapDown: (details) {
-                            // 设置按下事件信息
-                            _tempTapDownDetails = details;
-                          },
-                          onTap: () {
-                            debugPrint('onTap');
-                            handleOnTap();
-                          },
-                          onScaleStart: (details) {
-                            handleOnScaleStart(details);
-                          },
-                          onScaleUpdate: (details) {
-                            handleOnScaleUpdate(details);
-                          },
-                        )
-                      : GestureDetector(
-                          key: drawGestureKey,
-                          onPanStart: (details) {
-                            handleOnPanStart();
-                          },
-                          onPanUpdate: (details) {
-                            handleOnPanUpdate(details);
-                          },
-                          onPanEnd: (details) {
-                            _tempLine = null;
-                          },
-                        ),
+                  child: Listener(
+                    onPointerDown: (event) {
+                      pointerCount++;
+                      debugPrint('onPointerDown pointerCount:$pointerCount');
+                      if (boradMode != BoradMode.Edit) {
+                        if (pointerCount > 1) {
+                          boradMode = BoradMode.Zoom;
+                        } else {
+                          boradMode = BoradMode.Draw;
+                        }
+                        setState(() {});
+                      }
+                    },
+                    onPointerUp: (event) {
+                      pointerCount--;
+                      debugPrint('onPointerCancel pointerCount:$pointerCount');
+                      if (boradMode != BoradMode.Edit) {
+                        if (pointerCount > 1) {
+                          boradMode = BoradMode.Zoom;
+                        } else {
+                          boradMode = BoradMode.Draw;
+                        }
+                        setState(() {});
+                      }
+                    },
+                    child: GestureDetector(
+                      key: drawGestureKey,
+                      behavior: HitTestBehavior.opaque,
+                      onTapDown: (details) {
+                        // 设置按下事件信息
+                        _tempTapDownDetails = details;
+                      },
+                      onTap: () {
+                        debugPrint('onTap boradMode:$boradMode');
+                        handleOnTap();
+                      },
+                      onScaleStart: (details) {
+                        debugPrint('onScaleStart boradMode:$boradMode');
+                        if (boradMode == BoradMode.Draw) {
+                          handleOnPanStart();
+                        } else {
+                          handleOnScaleStart(details);
+                        }
+                      },
+                      onScaleUpdate: (details) {
+                        debugPrint('onScaleUpdate boradMode:$boradMode');
+                        if (boradMode == BoradMode.Draw) {
+                          handleOnPanUpdate(details);
+                        } else {
+                          handleOnScaleUpdate(details);
+                        }
+                      },
+                      onScaleEnd: (details) {
+                        debugPrint('onScaleEnd boradMode:$boradMode');
+                        _tempLine = null;
+                      },
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -142,7 +176,7 @@ class _HomePageState extends State<HomePage>
         ),
       ),
       floatingActionButton: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        // crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -257,27 +291,12 @@ class _HomePageState extends State<HomePage>
               ),
               SizedBox(width: 2),
               FloatingActionButton(
-                child: Icon(Icons.format_paint_rounded),
-                tooltip: '绘制',
-                heroTag: 'draw',
-                backgroundColor:
-                    boradMode == BoradMode.Draw ? Colors.blue : Colors.grey,
+                child: Icon(Icons.crop_rotate_rounded),
+                tooltip: '旋转',
+                heroTag: 'rotate',
                 onPressed: () {
-                  boradMode = BoradMode.Draw;
-                  setState(() {});
-                },
-              ),
-              SizedBox(width: 2),
-              FloatingActionButton(
-                child: Icon(
-                  Icons.fullscreen_rounded,
-                ),
-                backgroundColor:
-                    boradMode == BoradMode.Zoom ? Colors.blue : Colors.grey,
-                tooltip: '缩放',
-                heroTag: 'scale',
-                onPressed: () {
-                  boradMode = BoradMode.Zoom;
+                  _scale = 1.0;
+                  _rotation = _rotation - pi / 2;
                   setState(() {});
                 },
               ),
@@ -345,6 +364,7 @@ class _HomePageState extends State<HomePage>
           lp.dy <= (tempTextRect.top + delRadius)) {
         paintList.remove(_tempText);
         _tempText = null;
+        boradMode = BoradMode.Draw;
         setState(() {});
         return;
       }
@@ -373,6 +393,7 @@ class _HomePageState extends State<HomePage>
           // 然后赋值设置为选中状态
           _tempText = item;
           _tempText.selected = true;
+          boradMode = BoradMode.Edit;
           setState(() {});
         }
         break;
@@ -380,6 +401,7 @@ class _HomePageState extends State<HomePage>
         debugPrint('onTapDown 未命中');
         item.selected = false;
         _tempText = null;
+        boradMode = BoradMode.Draw;
         setState(() {});
       }
     }
@@ -396,7 +418,7 @@ class _HomePageState extends State<HomePage>
       _tmpMoveX = _moveX;
       _tmpMoveY = _moveY;
       _tmpScale = _scale;
-      _tmpRotation = _rotation;
+      // _tmpRotation = _rotation;
     }
   }
 
@@ -415,7 +437,7 @@ class _HomePageState extends State<HomePage>
       debugPrint(
           'onScaleUpdate _moveY:$_moveY _tmpMoveY:$_tmpMoveY _tmpFocal:${_tmpFocal.toString()} _tmpScale:$_tmpScale');
       _scale = _tmpScale * details.scale;
-      _rotation = _tmpRotation + details.rotation;
+      // _rotation = _tmpRotation + details.rotation;
     }
 
     setState(() {});
@@ -430,9 +452,8 @@ class _HomePageState extends State<HomePage>
   }
 
   /// 处理滑动更新事件
-  void handleOnPanUpdate(DragUpdateDetails details) {
-    RenderBox renderBox = drawGestureKey.currentContext.findRenderObject();
-    Offset localPos = renderBox.globalToLocal(details.globalPosition);
+  void handleOnPanUpdate(ScaleUpdateDetails details) {
+    Offset localPos = details.localFocalPoint;
     if (_tempLine == null) {
       _tempLine = DrawLine();
       paintList.add(_tempLine);
@@ -495,7 +516,7 @@ class _HomePageState extends State<HomePage>
     ui.Image image = await boundary.toImage(pixelRatio: 3);
     ByteData byteData = await image.toByteData(format: ui.ImageByteFormat.png);
     Uint8List pngBytes = byteData.buffer.asUint8List();
-    print(pngBytes);
+    print(pngBytes.length);
 
     /// 显示图片
     showDialog(
