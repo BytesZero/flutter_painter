@@ -3,11 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'dart:ui' as ui;
-import 'draw/draw_borad.dart';
-import 'draw/draw_line.dart';
-import 'draw/base_draw.dart';
-import 'draw/draw_text.dart';
+import 'package:flutter_painter/flutter_painter.dart';
 import 'edit_text_page.dart';
 
 /// 首页
@@ -18,34 +14,13 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage>
-    with AutomaticKeepAliveClientMixin {
-  String imageUrl1 = 'assets/images/huaxiong.jpeg';
-  String imageUrl2 = 'assets/images/big_img_01.jpg';
-  String imageUrl3 = 'assets/images/img_01.jpg';
-  // 绘制转成图片的 key
-  GlobalKey drawToImageKey = GlobalKey();
-
-  /// 绘制手势 key
-  var drawGestureKey = GlobalKey();
-
-  /// 默认缩放信息
-  double _scale = 1.0;
-  double _tmpScale = 1.0;
-  double _moveX = 0.0;
-  double _tmpMoveX = 0.0;
-  double _moveY = 0.0;
-  double _tmpMoveY = 0.0;
-  double _rotation = 0.0;
-  double _tmpRotation = 0.0;
-
-  Offset _tmpFocal = Offset.zero;
-  Matrix4 matrix4;
-
-  // 按下手指个数
-  int pointerCount = 0;
-  // 画板模式
-  BoradMode boradMode = BoradMode.Zoom;
+class _HomePageState extends State<HomePage> {
+  String imageUrl1 =
+      'https://cdn.pixabay.com/photo/2021/01/11/13/28/cross-country-skiing-5908416_1280.jpg';
+  String imageUrl2 =
+      'https://cdn.pixabay.com/photo/2017/07/04/10/07/board-2470557__340.jpg';
+  String imageUrl3 =
+      'https://cdn.pixabay.com/photo/2017/07/20/03/53/homework-2521144_1280.jpg';
   //选择颜色
   Color selectColor = Colors.red;
   // 颜色列表
@@ -59,7 +34,7 @@ class _HomePageState extends State<HomePage>
     Colors.orange,
   ];
   //选择颜色
-  double brushWidth = 4;
+  double brushWidth = 2;
   // 笔刷粗细列表
   List<double> brushWidthList = [
     1,
@@ -68,399 +43,207 @@ class _HomePageState extends State<HomePage>
     6,
     8,
   ];
-  // 绘制集合
-  List<BaseDraw> paintList = [];
-  // 临时线
-  DrawLine _tempLine;
-  // 临时文字，标记选中赋值
-  DrawText _tempText;
-  // 临时按下事件记录，防止时间错乱
-  TapDownDetails _tempTapDownDetails;
 
-  @override
-  bool get wantKeepAlive => true;
+  /// 旋转角度
+  double rotation = 0.0;
 
-  Offset textOffset = Offset(100, 40);
+  /// 绘制的key
+  GlobalKey<FlutterPainterWidgetState> painterKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
-    matrix4 = Matrix4.identity()
-      ..scale(_scale, _scale)
-      ..translate(_moveX, _moveY)
-      ..rotateZ(_rotation);
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Flutter Painter Demo'),
-      ),
-      body: Container(
-        color: Colors.white,
-        child: RepaintBoundary(
-          key: drawToImageKey,
-          child: Transform(
-            transform: matrix4,
-            alignment: FractionalOffset.center,
-            child: Stack(
-              children: [
-                Center(
-                  child: Image.asset(
-                    imageUrl2,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                CustomPaint(
-                  size: Size.infinite,
-                  painter: DrawBorad(paintList: paintList),
-                  child: Listener(
-                    onPointerDown: (event) {
-                      pointerCount++;
-                      debugPrint('onPointerDown pointerCount:$pointerCount');
-                      if (boradMode != BoradMode.Edit) {
-                        if (pointerCount > 1) {
-                          boradMode = BoradMode.Zoom;
-                        } else {
-                          boradMode = BoradMode.Draw;
-                        }
-                        setState(() {});
-                      }
-                    },
-                    onPointerUp: (event) {
-                      pointerCount--;
-                      debugPrint('onPointerCancel pointerCount:$pointerCount');
-                      if (boradMode != BoradMode.Edit) {
-                        if (pointerCount > 1) {
-                          boradMode = BoradMode.Zoom;
-                        } else {
-                          boradMode = BoradMode.Draw;
-                        }
-                        setState(() {});
-                      }
-                    },
-                    child: GestureDetector(
-                      key: drawGestureKey,
-                      behavior: HitTestBehavior.opaque,
-                      onTapDown: (details) {
-                        // 设置按下事件信息
-                        _tempTapDownDetails = details;
-                      },
-                      onTap: () {
-                        debugPrint('onTap boradMode:$boradMode');
-                        handleOnTap();
-                      },
-                      onScaleStart: (details) {
-                        debugPrint('onScaleStart boradMode:$boradMode');
-                        if (boradMode == BoradMode.Draw) {
-                          handleOnPanStart();
-                        } else {
-                          handleOnScaleStart(details);
-                        }
-                      },
-                      onScaleUpdate: (details) {
-                        debugPrint('onScaleUpdate boradMode:$boradMode');
-                        if (boradMode == BoradMode.Draw) {
-                          handleOnPanUpdate(details);
-                        } else {
-                          handleOnScaleUpdate(details);
-                        }
-                      },
-                      onScaleEnd: (details) {
-                        debugPrint('onScaleEnd boradMode:$boradMode');
-                        _tempLine = null;
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+        appBar: AppBar(
+          title: Text('Flutter Painter Demo'),
         ),
-      ),
-      floatingActionButton: Column(
-        // crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AnimatedOpacity(
-            duration: Duration(milliseconds: 600),
-            opacity: boradMode == BoradMode.Draw ? 1 : 0,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(20),
+        body: Stack(
+          children: [
+            FlutterPainterWidget(
+              key: painterKey,
+              height: 290,
+              width: 430,
+              brushColor: selectColor,
+              brushWidth: brushWidth,
+              background: Center(
+                child: Image.network(
+                  imageUrl3,
+                  fit: BoxFit.cover,
+                ),
               ),
-              padding: EdgeInsets.all(4),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: colorList.map((color) {
-                  return GestureDetector(
-                    onTap: () {
-                      selectColor = color;
-                      if (_tempText != null && _tempText.selected) {
-                        _tempText.color = selectColor;
-                      }
-                      setState(() {});
-                    },
-                    child: Container(
-                      height: 24,
-                      width: 24,
-                      margin: EdgeInsets.all(6),
-                      padding: EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: color,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Colors.white,
-                          width: selectColor == color ? 4 : 2,
+            ),
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: SafeArea(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AnimatedOpacity(
+                      duration: Duration(milliseconds: 600),
+                      opacity: 1,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        padding: EdgeInsets.all(4),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: colorList.map((color) {
+                            return GestureDetector(
+                              onTap: () {
+                                selectColor = color;
+                                // if (_tempText != null && _tempText.selected) {
+                                //   _tempText.color = selectColor;
+                                // }
+                                setState(() {});
+                              },
+                              child: Container(
+                                height: 24,
+                                width: 24,
+                                margin: EdgeInsets.all(6),
+                                padding: EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: color,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: selectColor == color ? 4 : 2,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
                         ),
                       ),
                     ),
-                  );
-                }).toList(),
-              ),
-            ),
-          ),
-          SizedBox(height: 10),
-          AnimatedOpacity(
-            duration: Duration(milliseconds: 300),
-            opacity: boradMode == BoradMode.Draw ? 1 : 0,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(30),
-              ),
-              padding: EdgeInsets.symmetric(vertical: 4, horizontal: 10),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: brushWidthList.map((width) {
-                  return GestureDetector(
-                    onTap: () {
-                      brushWidth = width;
-                      setState(() {});
-                    },
-                    child: Container(
-                        height: 36,
-                        width: 36,
-                        margin: EdgeInsets.all(6),
-                        padding: EdgeInsets.all(4),
+                    SizedBox(height: 10),
+                    AnimatedOpacity(
+                      duration: Duration(milliseconds: 300),
+                      // opacity: boradMode == BoradMode.Draw ? 1 : 0,
+                      opacity: 1,
+                      child: Container(
                         decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(30),
-                          border: Border.all(
-                            color: brushWidth == width
-                                ? Colors.white
-                                : Colors.transparent,
-                            width: 2,
-                          ),
                         ),
-                        child: Column(
-                          children: [
-                            Icon(
-                              Icons.brush_rounded,
-                              size: 16,
-                              color: brushWidth == width
-                                  ? selectColor
-                                  : Colors.black54,
-                            ),
-                            Container(
-                              height: width,
-                              width: 18,
-                              decoration: BoxDecoration(
-                                color: brushWidth == width
-                                    ? selectColor
-                                    : Colors.black87,
-                                borderRadius: BorderRadius.circular(width),
-                              ),
-                            ),
-                          ],
-                        )),
-                  );
-                }).toList(),
+                        padding:
+                            EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: brushWidthList.map((width) {
+                            return GestureDetector(
+                              onTap: () {
+                                brushWidth = width;
+                                setState(() {});
+                              },
+                              child: Container(
+                                  height: 36,
+                                  width: 36,
+                                  margin: EdgeInsets.all(6),
+                                  padding: EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(30),
+                                    border: Border.all(
+                                      color: brushWidth == width
+                                          ? Colors.white
+                                          : Colors.transparent,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Icon(
+                                        Icons.brush_rounded,
+                                        size: 16,
+                                        color: brushWidth == width
+                                            ? selectColor
+                                            : Colors.black54,
+                                      ),
+                                      Container(
+                                        height: width,
+                                        width: 18,
+                                        decoration: BoxDecoration(
+                                          color: brushWidth == width
+                                              ? selectColor
+                                              : Colors.black87,
+                                          borderRadius:
+                                              BorderRadius.circular(width),
+                                        ),
+                                      ),
+                                    ],
+                                  )),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        FloatingActionButton(
+                          child: Icon(Icons.save_alt_rounded),
+                          tooltip: '保存',
+                          heroTag: 'save',
+                          onPressed: () {
+                            saveToImage();
+                          },
+                        ),
+                        SizedBox(width: 2),
+                        FloatingActionButton(
+                          child: Icon(Icons.crop_rotate_rounded),
+                          tooltip: '旋转',
+                          heroTag: 'rotate',
+                          onPressed: () {
+                            painterKey?.currentState?.clearDraw();
+                            rotation = rotation - pi / 2;
+                            painterKey?.currentState?.setRotation(rotation);
+                          },
+                        ),
+                        SizedBox(width: 2),
+                        FloatingActionButton(
+                          child: Icon(Icons.undo_rounded),
+                          tooltip: '回退',
+                          heroTag: 'undo',
+                          onPressed: () {
+                            painterKey?.currentState?.undo();
+                          },
+                        ),
+                        SizedBox(width: 2),
+                        FloatingActionButton(
+                          child: Icon(
+                            Icons.clear,
+                          ),
+                          tooltip: '清空',
+                          heroTag: 'clear',
+                          onPressed: () {
+                            painterKey?.currentState?.clearDraw();
+                          },
+                        ),
+                        SizedBox(width: 2),
+                        FloatingActionButton(
+                          child: Icon(
+                            Icons.text_fields_rounded,
+                            color: selectColor,
+                          ),
+                          tooltip: '文本',
+                          heroTag: 'text',
+                          onPressed: () {
+                            showEditTextDialog();
+                          },
+                        ),
+                      ],
+                    ),
+                    SizedBox(width: 6),
+                  ],
+                ),
               ),
             ),
-          ),
-          SizedBox(height: 20),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              FloatingActionButton(
-                child: Icon(Icons.save_alt_rounded),
-                tooltip: '保存',
-                heroTag: 'save',
-                onPressed: () {
-                  saveToImage();
-                },
-              ),
-              SizedBox(width: 2),
-              FloatingActionButton(
-                child: Icon(Icons.crop_rotate_rounded),
-                tooltip: '旋转',
-                heroTag: 'rotate',
-                onPressed: () {
-                  _scale = 1.0;
-                  _rotation = _rotation - pi / 2;
-                  setState(() {});
-                },
-              ),
-              SizedBox(width: 2),
-              FloatingActionButton(
-                child: Icon(Icons.undo_rounded),
-                tooltip: '回退',
-                heroTag: 'undo',
-                backgroundColor:
-                    paintList.isNotEmpty ? Colors.blue : Colors.grey,
-                onPressed: () {
-                  if (paintList.isNotEmpty) {
-                    paintList.removeLast();
-                    setState(() {});
-                  }
-                },
-              ),
-              SizedBox(width: 2),
-              FloatingActionButton(
-                child: Icon(
-                  Icons.clear,
-                ),
-                tooltip: '清空',
-                heroTag: 'clear',
-                backgroundColor:
-                    paintList.isNotEmpty ? Colors.blue : Colors.grey,
-                onPressed: () {
-                  paintList = [];
-                  setState(() {});
-                },
-              ),
-              SizedBox(width: 2),
-              FloatingActionButton(
-                child: Icon(
-                  Icons.text_fields_rounded,
-                  color: selectColor,
-                ),
-                tooltip: '文本',
-                heroTag: 'text',
-                onPressed: () {
-                  showEditTextDialog();
-                },
-              ),
-            ],
-          ),
-          SizedBox(width: 6),
-        ],
-      ),
-    );
-  }
-
-  /// 处理点击事件
-  void handleOnTap() {
-    Offset lp = _tempTapDownDetails.localPosition;
-    debugPrint('onTapDown details:${lp.toString()}');
-    debugPrint('onTapDown _tempText:${_tempText.toString()}');
-    if (_tempText != null) {
-      /// 计算是否命中删除区域
-      double delRadius = _tempText.delRadius;
-      Rect tempTextRect = _tempText.textRect;
-      if (_tempText.selected &&
-          lp.dx >= (tempTextRect.left - delRadius) &&
-          lp.dx <= (tempTextRect.left + delRadius) &&
-          lp.dy >= (tempTextRect.top - delRadius) &&
-          lp.dy <= (tempTextRect.top + delRadius)) {
-        paintList.remove(_tempText);
-        _tempText = null;
-        boradMode = BoradMode.Draw;
-        setState(() {});
-        return;
-      }
-    }
-
-    /// 只获取文字
-    var textList = paintList.whereType<DrawText>();
-    // 遍历查看是否命中事件
-    for (var item in textList) {
-      Rect textRect = item.textRect;
-      debugPrint(
-          'onTapDown lp:${lp.toString()} textRect:${textRect.toString()} scale:${item.scale}');
-      //计算是否命中事件
-      if (lp.dx >= textRect.left &&
-          lp.dx <= textRect.right &&
-          lp.dy >= textRect.top &&
-          lp.dy <= textRect.bottom) {
-        debugPrint('onTapDown 命中🎯');
-
-        // 命中的是上次命中的，那么触发编辑
-        if (item.selected) {
-          showEditTextDialog(drawText: item);
-        } else {
-          // 先设置为不选中状态
-          _tempText?.selected = false;
-          // 然后赋值设置为选中状态
-          _tempText = item;
-          _tempText.selected = true;
-          boradMode = BoradMode.Edit;
-          setState(() {});
-        }
-        break;
-      } else {
-        debugPrint('onTapDown 未命中');
-        item.selected = false;
-        _tempText = null;
-        boradMode = BoradMode.Draw;
-        setState(() {});
-      }
-    }
-  }
-
-  /// 处理缩放移动开始事件
-  void handleOnScaleStart(ScaleStartDetails details) {
-    _tmpFocal = details.focalPoint;
-    if (_tempText != null && _tempText.selected) {
-      _tmpMoveX = _tempText.offset.dx;
-      _tmpMoveY = _tempText.offset.dy;
-      _tmpScale = _tempText.scale;
-    } else {
-      _tmpMoveX = _moveX;
-      _tmpMoveY = _moveY;
-      _tmpScale = _scale;
-      // _tmpRotation = _rotation;
-    }
-  }
-
-  /// 处理缩放移动更新事件
-  void handleOnScaleUpdate(ScaleUpdateDetails details) {
-    if (_tempText != null && _tempText.selected) {
-      double textMoveX = _tmpMoveX + (details.focalPoint.dx - _tmpFocal.dx);
-      double textMoveY = _tmpMoveY + (details.focalPoint.dy - _tmpFocal.dy);
-      _tempText.offset = Offset(textMoveX, textMoveY);
-      _tempText.scale = _tmpScale * details.scale;
-    } else {
-      _moveX = _tmpMoveX + (details.focalPoint.dx - _tmpFocal.dx) / _tmpScale;
-      debugPrint(
-          'onScaleUpdate _moveX:$_moveX _tmpMoveX:$_tmpMoveX _tmpFocal:${_tmpFocal.toString()} _tmpScale:$_tmpScale');
-      _moveY = _tmpMoveY + (details.focalPoint.dy - _tmpFocal.dy) / _tmpScale;
-      debugPrint(
-          'onScaleUpdate _moveY:$_moveY _tmpMoveY:$_tmpMoveY _tmpFocal:${_tmpFocal.toString()} _tmpScale:$_tmpScale');
-      _scale = _tmpScale * details.scale;
-      // _rotation = _tmpRotation + details.rotation;
-    }
-
-    setState(() {});
-  }
-
-  /// 处理滑动开始事件
-  void handleOnPanStart() {
-    _tempLine = DrawLine()
-      ..color = selectColor
-      ..lineWidth = brushWidth;
-    paintList.add(_tempLine);
-  }
-
-  /// 处理滑动更新事件
-  void handleOnPanUpdate(ScaleUpdateDetails details) {
-    Offset localPos = details.localFocalPoint;
-    if (_tempLine == null) {
-      _tempLine = DrawLine();
-      paintList.add(_tempLine);
-    }
-    _tempLine.linePath.add(localPos);
-    paintList.last = _tempLine;
-    setState(() {});
+          ],
+        ));
   }
 
   /// 现实文字输入框
@@ -483,14 +266,14 @@ class _HomePageState extends State<HomePage>
       Color textColor = Color(colorValue);
       if (drawText == null) {
         double padding = MediaQuery.of(context).padding.bottom;
-        Offset center = MediaQuery.of(context).size.center(Offset(0, padding));
+        Offset center = Size(430, 290).center(Offset(0, padding));
         DrawText newDrawText = DrawText()
           ..text = text ?? ''
           ..drawSize = Size(0, 0)
           ..offset = center
           ..fontSize = 14
           ..color = textColor;
-        paintList.add(newDrawText);
+        painterKey?.currentState?.addText(newDrawText);
       } else {
         drawText
           ..text = text
@@ -503,20 +286,7 @@ class _HomePageState extends State<HomePage>
 
   // 保存为图片
   Future<void> saveToImage() async {
-    /// 恢复到默认状态
-    _scale = 1.0;
-    _moveX = 0;
-    _moveY = 0;
-    setState(() {});
-    await Future.delayed(Duration(milliseconds: 300));
-
-    /// 开始保存图片
-    RenderRepaintBoundary boundary =
-        drawToImageKey.currentContext.findRenderObject();
-    ui.Image image = await boundary.toImage(pixelRatio: 3);
-    ByteData byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    Uint8List pngBytes = byteData.buffer.asUint8List();
-    print(pngBytes.length);
+    Uint8List pngBytes = await painterKey?.currentState?.getImage();
 
     /// 显示图片
     showDialog(

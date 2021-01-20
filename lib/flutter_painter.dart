@@ -1,7 +1,7 @@
 library flutter_painter;
 
-/// A Calculator.
-class Calculator {
-  /// Returns [value] plus 1.
-  int addOne(int value) => value + 1;
-}
+export 'draw/base_draw.dart';
+export 'draw/draw_borad.dart';
+export 'draw/draw_line.dart';
+export 'draw/draw_text.dart';
+export 'flutter_painter_widget.dart';
