@@ -97,13 +97,13 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
                       onPointerDown: (event) {
                         _pointerCount++;
                         debugPrint('onPointerDown pointerCount:$_pointerCount');
-                        switchBoradMode();
+                        _switchBoradMode();
                       },
                       onPointerUp: (event) {
                         _pointerCount--;
                         debugPrint(
                             'onPointerCancel pointerCount:$_pointerCount');
-                        switchBoradMode();
+                        _switchBoradMode();
                       },
                       child: GestureDetector(
                         behavior: HitTestBehavior.opaque,
@@ -150,7 +150,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   }
 
   /// 切换画板模式
-  void switchBoradMode() {
+  void _switchBoradMode() {
     if (_boradMode != BoradMode.Edit) {
       if (_pointerCount > 1) {
         _boradMode = BoradMode.Zoom;
