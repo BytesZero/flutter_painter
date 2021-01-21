@@ -60,8 +60,8 @@ class _HomePageState extends State<HomePage> {
           children: [
             FlutterPainterWidget(
               key: painterKey,
-              height: 290,
-              width: 430,
+              // height: 290,
+              // width: 430,
               brushColor: selectColor,
               brushWidth: brushWidth,
               background: Center(
@@ -70,6 +70,9 @@ class _HomePageState extends State<HomePage> {
                   fit: BoxFit.cover,
                 ),
               ),
+              onTapText: (item) {
+                showEditTextDialog(drawText: item);
+              },
             ),
             Positioned(
               bottom: 0,

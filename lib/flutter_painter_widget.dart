@@ -17,13 +17,15 @@ class FlutterPainterWidget extends StatefulWidget {
       this.width,
       this.height,
       this.brushWidth = 2,
-      this.brushColor = Colors.red})
+      this.brushColor = Colors.red,
+      this.onTapText})
       : super(key: key);
   final Widget background;
   final double width;
   final double height;
   final Color brushColor;
   final double brushWidth;
+  final ValueChanged<DrawText> onTapText;
 
   @override
   FlutterPainterWidgetState createState() => FlutterPainterWidgetState();
@@ -44,6 +46,9 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   double _rotation = 0.0;
   Offset _tmpFocal = Offset.zero;
 
+  /// 是否被 90度的奇数，就是90和270
+  bool get is90 => (_rotation ~/ (pi / 2)).isOdd;
+
   /// 矩阵信息
   Matrix4 _matrix4;
 
@@ -60,7 +65,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   DrawLine _tempLine;
   // 临时文字，标记选中赋值
   DrawText _tempText;
-  // 临时按下事件记录，防止时间错乱
+  // 临时按下事件记录，防止事件错乱
   TapDownDetails _tempTapDownDetails;
 
   @override
@@ -71,13 +76,9 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     super.build(context);
     _matrix4 = Matrix4.identity()
       ..scale(_scale, _scale)
-      ..translate(_moveX, _moveY)
-      ..rotateZ(_rotation);
+      ..translate(_moveX, _moveY);
     return Scaffold(
       body: Container(
-        color: Colors.white,
-        width: widget.width,
-        height: widget.height,
         child: RepaintBoundary(
           key: _drawToImageKey,
           child: Transform(
@@ -85,66 +86,60 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
             alignment: FractionalOffset.center,
             child: Stack(
               children: [
-                widget.background,
+                Transform.rotate(
+                  angle: _rotation,
+                  child: widget.background,
+                ),
                 CustomPaint(
                   size: Size.infinite,
                   painter: DrawBorad(paintList: paintList),
                   child: Listener(
-                    onPointerDown: (event) {
-                      _pointerCount++;
-                      debugPrint('onPointerDown pointerCount:$_pointerCount');
-                      if (_boradMode != BoradMode.Edit) {
-                        if (_pointerCount > 1) {
-                          _boradMode = BoradMode.Zoom;
-                        } else {
-                          _boradMode = BoradMode.Draw;
-                        }
-                        setState(() {});
-                      }
-                    },
-                    onPointerUp: (event) {
-                      _pointerCount--;
-                      debugPrint('onPointerCancel pointerCount:$_pointerCount');
-                      if (_boradMode != BoradMode.Edit) {
-                        if (_pointerCount > 1) {
-                          _boradMode = BoradMode.Zoom;
-                        } else {
-                          _boradMode = BoradMode.Draw;
-                        }
-                        setState(() {});
-                      }
-                    },
-                    child: boradMode == BoradMode.Zoom
-                        ? GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTapDown: (details) {
-                              // 设置按下事件信息
-                              _tempTapDownDetails = details;
-                            },
-                            onTap: () {
-                              debugPrint('onTap');
-                              _handleOnTap();
-                            },
-                            onScaleStart: (details) {
-                              _handleOnScaleStart(details);
-                            },
-                            onScaleUpdate: (details) {
-                              _handleOnScaleUpdate(details);
-                            },
-                          )
-                        : GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onPanStart: (details) {
-                              _handleOnPanStart();
-                            },
-                            onPanUpdate: (details) {
-                              _handleOnPanUpdate(details);
-                            },
-                            onPanEnd: (details) {
-                              _tempLine = null;
-                            },
-                          ),
-                  ),
+                      onPointerDown: (event) {
+                        _pointerCount++;
+                        debugPrint('onPointerDown pointerCount:$_pointerCount');
+                        switchBoradMode();
+                      },
+                      onPointerUp: (event) {
+                        _pointerCount--;
+                        debugPrint(
+                            'onPointerCancel pointerCount:$_pointerCount');
+                        switchBoradMode();
+                      },
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTapDown: (details) {
+                          debugPrint('onTapDown');
+                          // 设置按下事件信息
+                          _tempTapDownDetails = details;
+                          _handleOnPanStart(details.localPosition);
+                        },
+                        onTap: () {
+                          debugPrint('onTap');
+                          _handleOnTap();
+                        },
+                        onScaleStart: (details) {
+                          debugPrint('onScaleStart');
+                          if (boradMode == BoradMode.Zoom ||
+                              boradMode == BoradMode.Edit) {
+                            _handleOnScaleStart(details);
+                          } else {
+                            _handleOnPanUpdate(details.localFocalPoint);
+                          }
+                        },
+                        onScaleUpdate: (details) {
+                          debugPrint('onScaleUpdate');
+                          if (boradMode == BoradMode.Zoom ||
+                              boradMode == BoradMode.Edit) {
+                            _handleOnScaleUpdate(details);
+                          } else {
+                            _handleOnPanUpdate(details.localFocalPoint);
+                          }
+                        },
+                        onScaleEnd: (details) {
+                          debugPrint('onScaleEnd');
+                          _tempLine = null;
+                        },
+                      )),
                 ),
               ],
             ),
@@ -152,6 +147,18 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
         ),
       ),
     );
+  }
+
+  /// 切换画板模式
+  void switchBoradMode() {
+    if (_boradMode != BoradMode.Edit) {
+      if (_pointerCount > 1) {
+        _boradMode = BoradMode.Zoom;
+      } else {
+        _boradMode = BoradMode.Draw;
+      }
+      setState(() {});
+    }
   }
 
   /// 处理点击事件
@@ -192,7 +199,9 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
         // 命中的是上次命中的，那么触发编辑
         if (item.selected) {
-          // showEditTextDialog(drawText: item);
+          if (widget.onTapText != null) {
+            widget.onTapText(item);
+          }
         } else {
           // 先设置为不选中状态
           _tempText?.selected = false;
@@ -216,6 +225,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   /// 处理缩放移动开始事件
   void _handleOnScaleStart(ScaleStartDetails details) {
     _tmpFocal = details.focalPoint;
+
+    /// 有选中文字处理选中文字
     if (_tempText != null && _tempText.selected) {
       _tmpMoveX = _tempText.offset.dx;
       _tmpMoveY = _tempText.offset.dy;
@@ -247,39 +258,40 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   }
 
   /// 处理滑动开始事件
-  void _handleOnPanStart() {
+  void _handleOnPanStart(Offset point) {
     _tempLine = DrawLine()
       ..color = widget.brushColor
       ..lineWidth = widget.brushWidth;
+    _tempLine.linePath.add(point);
     paintList.add(_tempLine);
   }
 
   /// 处理滑动更新事件
-  void _handleOnPanUpdate(DragUpdateDetails details) {
-    // Offset point = details.localFocalPoint;
-    Size size = Size(widget.width, widget.height);
-    if (_rotation % (pi / 2) == 0) {
-      size = Size(widget.height, widget.width);
+  void _handleOnPanUpdate(Offset point) {
+    if (_tempLine == null) {
+      _handleOnPanStart(point);
     }
+    _tempLine.linePath.add(point);
+    paintList.last = _tempLine;
+    setState(() {});
+
+    /// 这里是计算区域的算法
+    // Offset point = details.localFocalPoint;
+    // Size size = Size(widget.width, widget.height);
+    // if (_rotation % (pi / 2) == 0) {
+    //   size = Size(widget.height, widget.width);
+    // }
     // RenderBox referenceBox = context.findRenderObject();
     // Offset point = referenceBox.globalToLocal(details.globalPosition);
-    Offset point = details.localPosition;
-    if (point.dx >= 0 &&
-        point.dx <= size.width &&
-        point.dy >= 0 &&
-        point.dy <= size.height) {
-      if (_tempLine == null) {
-        _tempLine = DrawLine();
-        _tempLine.color = widget.brushColor;
-        paintList.add(_tempLine);
-      }
-      _tempLine.linePath.add(point);
-      paintList.last = _tempLine;
-      setState(() {});
-    } else {
-      _tempLine = null;
-      setState(() {});
-    }
+    // Offset point = details.localPosition;
+    // if (point.dx >= 0 &&
+    //     point.dx <= size.width &&
+    //     point.dy >= 0 &&
+    //     point.dy <= size.height) {
+    // } else {
+    //   _tempLine = null;
+    //   setState(() {});
+    // }
   }
 
   /// 添加线
