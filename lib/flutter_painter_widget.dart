@@ -11,21 +11,23 @@ import 'draw/draw_text.dart';
 
 /// Flutter Painter
 class FlutterPainterWidget extends StatefulWidget {
-  FlutterPainterWidget(
-      {Key key,
-      @required this.background,
-      this.width,
-      this.height,
-      this.brushWidth = 2,
-      this.brushColor = Colors.red,
-      this.onTapText})
-      : super(key: key);
+  FlutterPainterWidget({
+    Key key,
+    @required this.background,
+    this.width,
+    this.height,
+    this.brushWidth = 2,
+    this.brushColor = Colors.red,
+    this.onTapText,
+    this.onPointerCount,
+  }) : super(key: key);
   final Widget background;
   final double width;
   final double height;
   final Color brushColor;
   final double brushWidth;
   final ValueChanged<DrawText> onTapText;
+  final ValueChanged<int> onPointerCount;
 
   @override
   FlutterPainterWidgetState createState() => FlutterPainterWidgetState();
@@ -158,6 +160,11 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
         _boradMode = BoradMode.Draw;
       }
       setState(() {});
+    }
+
+    /// 返回按下手指数
+    if (widget.onPointerCount != null) {
+      widget.onPointerCount(_pointerCount);
     }
   }
 
@@ -345,6 +352,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     ByteData byteData = await image.toByteData(format: ui.ImageByteFormat.png);
     Uint8List pngBytes = byteData.buffer.asUint8List();
     print(pngBytes.length);
+
     return pngBytes;
   }
 }
