@@ -16,16 +16,12 @@ class FlutterPainterWidget extends StatefulWidget {
     @required this.background,
     this.width,
     this.height,
-    this.brushWidth = 2,
-    this.brushColor = Colors.red,
     this.onTapText,
     this.onPointerCount,
   }) : super(key: key);
   final Widget background;
   final double width;
   final double height;
-  final Color brushColor;
-  final double brushWidth;
   final ValueChanged<DrawText> onTapText;
   final ValueChanged<int> onPointerCount;
 
@@ -46,6 +42,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   double _moveY = 0.0;
   double _tmpMoveY = 0.0;
   double _rotation = 0.0;
+  // 获取旋转角度
+  double get rotate => _rotation;
   Offset _tmpFocal = Offset.zero;
 
   /// 是否被 90度的奇数，就是90和270
@@ -58,8 +56,12 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   int _pointerCount = 0;
   int get pointerCount => _pointerCount;
   // 画板模式
-  BoradMode _boradMode = BoradMode.Zoom;
+  BoradMode _boradMode = BoradMode.Draw;
   BoradMode get boradMode => _boradMode;
+  // 画笔颜色
+  Color _brushColor = Colors.red;
+  // 画笔粗细
+  double _brushWidth = 2;
 
   // 绘制集合
   List<BaseDraw> paintList = [];
@@ -149,6 +151,17 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
         ),
       ),
     );
+  }
+
+  /// 设置画板模式
+  Future<void> setBoradMode(BoradMode mode) {
+    _boradMode = mode;
+    // 不是编辑模式设置空
+    if (mode != BoradMode.Edit && _tempText != null) {
+      _tempText.selected = false;
+      _tempText = null;
+    }
+    setState(() {});
   }
 
   /// 切换画板模式
@@ -267,8 +280,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   /// 处理滑动开始事件
   void _handleOnPanStart(Offset point) {
     _tempLine = DrawLine()
-      ..color = widget.brushColor
-      ..lineWidth = widget.brushWidth;
+      ..color = _brushColor
+      ..lineWidth = _brushWidth;
     _tempLine.linePath.add(point);
     paintList.add(_tempLine);
   }
@@ -301,15 +314,38 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     // }
   }
 
+  /// 设置画笔颜色
+  void setBrushColor(Color color) {
+    _brushColor = color;
+  }
+
+  /// 设置画笔宽度
+  void setBrushWidth(double width) {
+    _brushWidth = width;
+  }
+
   /// 添加线
   void addLine(DrawLine line) {
     paintList.add(line);
     setState(() {});
   }
 
+  /// 更新文字信息
+  void updateTempText(DrawText text) {
+    _tempText = text;
+    setState(() {});
+  }
+
   /// 添加文字
   void addText(DrawText text) {
     paintList.add(text);
+    if (text.selected) {
+      if (_tempText != null) {
+        _tempText.selected = false;
+      }
+      _tempText = paintList.last;
+      _boradMode = BoradMode.Edit;
+    }
     setState(() {});
   }
 
@@ -325,7 +361,11 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   /// 回退
   void undo() {
     if (paintList.isNotEmpty) {
-      paintList.removeLast();
+      var last = paintList.removeLast();
+      if (last == _tempText) {
+        _tempText = null;
+        _boradMode = BoradMode.Draw;
+      }
       setState(() {});
     }
   }
@@ -333,22 +373,33 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   /// 清空
   void clearDraw() {
     paintList = [];
+    _tempText = null;
+    _boradMode = BoradMode.Draw;
+    setState(() {});
+  }
+
+  /// 重置
+  void resetParams() {
+    _scale = 1.0;
+    _moveX = 0;
+    _moveY = 0;
+    if (_tempText != null) {
+      _tempText.selected = false;
+    }
+    _boradMode = BoradMode.Draw;
     setState(() {});
   }
 
   // 获取为图片
-  Future<Uint8List> getImage() async {
+  Future<Uint8List> getImage({double pixelRatio = 1}) async {
     /// 恢复到默认状态
-    _scale = 1.0;
-    _moveX = 0;
-    _moveY = 0;
-    setState(() {});
+    resetParams();
     await Future.delayed(Duration(milliseconds: 300));
 
     /// 开始保存图片
     RenderRepaintBoundary boundary =
         _drawToImageKey.currentContext.findRenderObject();
-    ui.Image image = await boundary.toImage(pixelRatio: 3);
+    ui.Image image = await boundary.toImage(pixelRatio: pixelRatio);
     ByteData byteData = await image.toByteData(format: ui.ImageByteFormat.png);
     Uint8List pngBytes = byteData.buffer.asUint8List();
     print(pngBytes.length);

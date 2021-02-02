@@ -62,8 +62,6 @@ class _HomePageState extends State<HomePage> {
               key: painterKey,
               // height: 290,
               // width: 430,
-              brushColor: selectColor,
-              brushWidth: brushWidth,
               background: Center(
                 child: Image.network(
                   imageUrl3,
@@ -102,6 +100,7 @@ class _HomePageState extends State<HomePage> {
                                 //   _tempText.color = selectColor;
                                 // }
                                 setState(() {});
+                                painterKey?.currentState?.setBrushColor(color);
                               },
                               child: Container(
                                 height: 24,
@@ -141,6 +140,7 @@ class _HomePageState extends State<HomePage> {
                               onTap: () {
                                 brushWidth = width;
                                 setState(() {});
+                                painterKey?.currentState?.setBrushWidth(width);
                               },
                               child: Container(
                                   height: 36,

@@ -27,9 +27,9 @@ class DrawText extends BaseDraw {
     }
     canvas.save();
 
-    // 设置央视
+    // 设置样式
     TextStyle style = TextStyle(fontSize: fontSize * scale, color: color);
-    // 设置问绷
+    // 设置文本
     TextSpan textSpan = TextSpan(
       text: text,
       style: style,
@@ -48,7 +48,7 @@ class DrawText extends BaseDraw {
     if (selected) {
       /// 设置边框画笔
       paint
-        ..color = Color(0xFFFFFFFF)
+        ..color = Color(0xFFDDDDDD)
         ..isAntiAlias = true
         ..strokeWidth = 1
         ..style = PaintingStyle.stroke;
@@ -60,7 +60,9 @@ class DrawText extends BaseDraw {
       );
 
       /// 设置删除画笔
-      paint.style = PaintingStyle.fill;
+      paint
+        ..color = Color(0xFFDDDDDD)
+        ..style = PaintingStyle.fill;
       //画圆形背景
       canvas.drawCircle(Offset(textRect.left, textRect.top), delRadius, paint);
       // 设置 X 画笔
