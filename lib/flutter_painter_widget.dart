@@ -356,6 +356,10 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 添加文字
   void addText(DrawText text) {
+    if (text?.text?.isEmpty ?? true) {
+      debugPrint('文字不能为空');
+      return;
+    }
     paintList.add(text);
     if (text.selected) {
       if (_tempText != null) {
@@ -382,10 +386,11 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       var last = paintList.removeLast();
       if (last == _tempText) {
         _tempText = null;
-        _boradMode = BoradMode.Draw;
       }
-      setState(() {});
     }
+    // 设置编辑模式
+    _boradMode = BoradMode.Draw;
+    setState(() {});
   }
 
   /// 清空

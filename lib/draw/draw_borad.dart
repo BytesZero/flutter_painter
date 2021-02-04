@@ -9,7 +9,6 @@ class DrawBorad extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    debugPrint('size:${size.toString()}');
     for (var draw in paintList) {
       draw.draw(canvas, size);
     }

@@ -8,12 +8,14 @@ class DrawText extends BaseDraw {
   double scale = 1.0; // 缩放
   TextPainter tp; // 文字画笔
   // 文字矩阵
-  Rect get textRect => Rect.fromLTWH(
-        offset.dx - 4,
-        offset.dy - 4,
-        tp.width + 8,
-        tp.height + 8,
-      );
+  Rect get textRect => (text?.isEmpty ?? true)
+      ? Rect.zero
+      : Rect.fromLTWH(
+          offset.dx - 4,
+          offset.dy - 4,
+          tp.width + 8,
+          tp.height + 8,
+        );
 
   // 是否选中
   bool selected = false;
