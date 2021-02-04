@@ -16,12 +16,18 @@ class FlutterPainterWidget extends StatefulWidget {
     @required this.background,
     this.width,
     this.height,
+    this.brushColor,
+    this.brushWidth,
     this.onTapText,
     this.onPointerCount,
   }) : super(key: key);
   final Widget background;
   final double width;
   final double height;
+  // 画笔颜色
+  final Color brushColor;
+  // 画笔粗细
+  final double brushWidth;
   final ValueChanged<DrawText> onTapText;
   final ValueChanged<int> onPointerCount;
 
@@ -73,6 +79,18 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   TapDownDetails _tempTapDownDetails;
 
   @override
+  void initState() {
+    /// 设置默认
+    if (widget.brushColor != null) {
+      _brushColor = widget.brushColor;
+    }
+    if (widget.brushWidth != null) {
+      _brushWidth = widget.brushWidth;
+    }
+    super.initState();
+  }
+
+  @override
   bool get wantKeepAlive => true;
 
   @override
@@ -115,7 +133,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
                           debugPrint('onTapDown');
                           // 设置按下事件信息
                           _tempTapDownDetails = details;
-                          _handleOnPanStart(details.localPosition);
+                          // _handleOnPanStart(details.localPosition);
                         },
                         onTap: () {
                           debugPrint('onTap');
