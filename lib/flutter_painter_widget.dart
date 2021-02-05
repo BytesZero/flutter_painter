@@ -42,6 +42,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 默认缩放信息
   double _scale = 1.0;
+  double get scale => _scale;
+  double _setScale = 1.0;
   double _tmpScale = 1.0;
   double _moveX = 0.0;
   double _tmpMoveX = 0.0;
@@ -98,6 +100,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     super.build(context);
     _matrix4 = Matrix4.identity()
       ..scale(_scale, _scale)
+      ..rotateZ(_rotation)
       ..translate(_moveX, _moveY);
     return Scaffold(
       body: Container(
@@ -108,10 +111,11 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
             alignment: FractionalOffset.center,
             child: Stack(
               children: [
-                Transform.rotate(
-                  angle: _rotation,
-                  child: widget.background,
-                ),
+                // Transform.rotate(
+                //   angle: _rotation,
+                //   child: widget.background,
+                // ),
+                widget.background,
                 CustomPaint(
                   size: Size.infinite,
                   painter: DrawBorad(paintList: paintList),
@@ -270,8 +274,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       _tmpMoveY = _tempText.offset.dy;
       _tmpScale = _tempText.scale;
     } else {
-      _tmpMoveX = _moveX;
-      _tmpMoveY = _moveY;
+      _tmpMoveX = is90 ? _moveY : _moveX;
+      _tmpMoveY = is90 ? _moveX : _moveY;
       _tmpScale = _scale;
       // _tmpRotation = _rotation;
     }
@@ -286,8 +290,21 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       _tempText.offset = Offset(textMoveX, textMoveY);
       _tempText.scale = _tmpScale * details.scale;
     } else {
-      _moveX = _tmpMoveX + (details.focalPoint.dx - _tmpFocal.dx) / _tmpScale;
-      _moveY = _tmpMoveY + (details.focalPoint.dy - _tmpFocal.dy) / _tmpScale;
+      /// 180 度
+      double absRotate = rotate.abs() % (2 * pi);
+      if (absRotate == (pi / 2)) {
+        _moveX = _tmpMoveY - (details.focalPoint.dy - _tmpFocal.dy) / _tmpScale;
+        _moveY = _tmpMoveX + (details.focalPoint.dx - _tmpFocal.dx) / _tmpScale;
+      } else if (absRotate == pi) {
+        _moveX = _tmpMoveX - (details.focalPoint.dx - _tmpFocal.dx) / _tmpScale;
+        _moveY = _tmpMoveY - (details.focalPoint.dy - _tmpFocal.dy) / _tmpScale;
+      } else if (absRotate == (pi * 1.5)) {
+        _moveX = _tmpMoveY + (details.focalPoint.dy - _tmpFocal.dy) / _tmpScale;
+        _moveY = _tmpMoveX - (details.focalPoint.dx - _tmpFocal.dx) / _tmpScale;
+      } else {
+        _moveX = _tmpMoveX + (details.focalPoint.dx - _tmpFocal.dx) / _tmpScale;
+        _moveY = _tmpMoveY + (details.focalPoint.dy - _tmpFocal.dy) / _tmpScale;
+      }
       _scale = _tmpScale * details.scale;
       // _rotation = _tmpRotation + details.rotation;
     }
@@ -372,11 +389,26 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   }
 
   /// 设置旋转角度
-  /// // _scale = 1.0;
-  // _rotation = _rotation - pi / 2;
+  /// [rotation] 旋转角度
   void setRotation(double rotation) {
-    _scale = 1.0;
     _rotation = rotation;
+    setState(() {});
+  }
+
+  /// 设置缩放
+  /// [scale] 缩放
+  void setScale(double scale) {
+    _scale = scale;
+    _setScale = scale;
+    setState(() {});
+  }
+
+  /// 设置移动位置
+  /// [moveX] 移动的 X
+  /// [moveY] 移动的 Y
+  void setMove(double moveX, double moveY) {
+    _moveX = moveX;
+    _moveY = moveY;
     setState(() {});
   }
 
@@ -403,7 +435,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 重置
   void resetParams() {
-    _scale = 1.0;
+    _scale = _setScale;
     _moveX = 0;
     _moveY = 0;
     if (_tempText != null) {
