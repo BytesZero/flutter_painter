@@ -29,10 +29,6 @@ class DrawText extends BaseDraw {
       return;
     }
     canvas.save();
-    Offset center = size.center(Offset.zero);
-    canvas.translate(center.dx, center.dy);
-    canvas.rotate(-rotate);
-    canvas.translate(-center.dx, -center.dy);
 
     // 设置样式
     TextStyle style = TextStyle(fontSize: fontSize * scale, color: color);
