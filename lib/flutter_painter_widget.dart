@@ -212,11 +212,12 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       /// 计算是否命中删除区域
       double delRadius = _tempText.delRadius;
       Rect tempTextRect = _tempText.textRect;
-      if (_tempText.selected &&
-          lp.dx >= (tempTextRect.left - delRadius) &&
-          lp.dx <= (tempTextRect.left + delRadius) &&
-          lp.dy >= (tempTextRect.top - delRadius) &&
-          lp.dy <= (tempTextRect.top + delRadius)) {
+      Rect delRect = RRect(
+          tempTextRect.left - delRadius,
+          tempTextRect.top - delRadius,
+          tempTextRect.left + delRadius,
+          tempTextRect.top + delRadius);
+      if (_tempText.selected && delRect.contains(lp)) {
         paintList.remove(_tempText);
         _tempText = null;
         _boradMode = BoradMode.Draw;
@@ -230,13 +231,11 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     // 遍历查看是否命中事件
     for (var item in textList) {
       Rect textRect = item.textRect;
+      
       debugPrint(
           'onTapDown lp:${lp.toString()} textRect:${textRect.toString()} scale:${item.scale}');
       //计算是否命中事件
-      if (lp.dx >= textRect.left &&
-          lp.dx <= textRect.right &&
-          lp.dy >= textRect.top &&
-          lp.dy <= textRect.bottom) {
+      if (textRect.contains(lp)) {
         debugPrint('onTapDown 命中🎯');
 
         // 命中的是上次命中的，那么触发编辑
@@ -277,34 +276,46 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       _tmpMoveX = is90 ? _moveY : _moveX;
       _tmpMoveY = is90 ? _moveX : _moveY;
       _tmpScale = _scale;
-      // _tmpRotation = _rotation;
     }
   }
 
   /// 处理缩放移动更新事件
   void _handleOnScaleUpdate(ScaleUpdateDetails details) {
+    /// 与2pi度取余就是当前的角度
+    double absRotate = rotate.abs() % (2 * pi);
+    double focalMoveX = (details.focalPoint.dx - _tmpFocal.dx);
+    double focalMoveY = (details.focalPoint.dy - _tmpFocal.dy);
+    double absMoveX;
+    double absMoveY;
+    // 90度
+    if (absRotate == (pi / 2)) {
+      absMoveX = _tmpMoveY - focalMoveY / _tmpScale;
+      absMoveY = _tmpMoveX + focalMoveX / _tmpScale;
+    } else if (absRotate == pi) {
+      // 180度
+      absMoveX = _tmpMoveX - focalMoveX / _tmpScale;
+      absMoveY = _tmpMoveY - focalMoveY / _tmpScale;
+    } else if (absRotate == (pi * 1.5)) {
+      // 270 度
+      absMoveX = _tmpMoveY + focalMoveY / _tmpScale;
+      absMoveY = _tmpMoveX - focalMoveX / _tmpScale;
+    } else {
+      // 0度
+      absMoveX = _tmpMoveX + focalMoveX / _tmpScale;
+      absMoveY = _tmpMoveY + focalMoveY / _tmpScale;
+    }
+
     /// 有选中文字处理选中文字
     if (_tempText != null && _tempText.selected) {
       double textMoveX = _tmpMoveX + (details.focalPoint.dx - _tmpFocal.dx);
       double textMoveY = _tmpMoveY + (details.focalPoint.dy - _tmpFocal.dy);
       _tempText.offset = Offset(textMoveX, textMoveY);
+
+      // _tempText.offset = Offset(absMoveX, absMoveY);
       _tempText.scale = _tmpScale * details.scale;
     } else {
-      /// 180 度
-      double absRotate = rotate.abs() % (2 * pi);
-      if (absRotate == (pi / 2)) {
-        _moveX = _tmpMoveY - (details.focalPoint.dy - _tmpFocal.dy) / _tmpScale;
-        _moveY = _tmpMoveX + (details.focalPoint.dx - _tmpFocal.dx) / _tmpScale;
-      } else if (absRotate == pi) {
-        _moveX = _tmpMoveX - (details.focalPoint.dx - _tmpFocal.dx) / _tmpScale;
-        _moveY = _tmpMoveY - (details.focalPoint.dy - _tmpFocal.dy) / _tmpScale;
-      } else if (absRotate == (pi * 1.5)) {
-        _moveX = _tmpMoveY + (details.focalPoint.dy - _tmpFocal.dy) / _tmpScale;
-        _moveY = _tmpMoveX - (details.focalPoint.dx - _tmpFocal.dx) / _tmpScale;
-      } else {
-        _moveX = _tmpMoveX + (details.focalPoint.dx - _tmpFocal.dx) / _tmpScale;
-        _moveY = _tmpMoveY + (details.focalPoint.dy - _tmpFocal.dy) / _tmpScale;
-      }
+      _moveX = absMoveX;
+      _moveY = absMoveY;
       _scale = _tmpScale * details.scale;
       // _rotation = _tmpRotation + details.rotation;
     }
@@ -377,6 +388,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       debugPrint('文字不能为空');
       return;
     }
+    text..rotate = _rotation;
     paintList.add(text);
     if (text.selected) {
       if (_tempText != null) {

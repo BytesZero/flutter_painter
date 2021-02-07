@@ -6,6 +6,7 @@ class DrawText extends BaseDraw {
   Color color = Color(0xFFFFFFFF); // 颜色
   double fontSize = 14; // 文字大小
   double scale = 1.0; // 缩放
+  double rotate = 0.0; // 旋转角度
   TextPainter tp; // 文字画笔
   // 文字矩阵
   Rect get textRect => (text?.isEmpty ?? true)
@@ -28,6 +29,10 @@ class DrawText extends BaseDraw {
       return;
     }
     canvas.save();
+    Offset center = size.center(Offset.zero);
+    canvas.translate(center.dx, center.dy);
+    canvas.rotate(-rotate);
+    canvas.translate(-center.dx, -center.dy);
 
     // 设置样式
     TextStyle style = TextStyle(fontSize: fontSize * scale, color: color);
@@ -84,7 +89,7 @@ class DrawText extends BaseDraw {
         paint,
       );
     }
-
+    // canvas.translate(-center.dx, -center.dy);
     canvas.restore();
   }
 }
