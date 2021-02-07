@@ -60,6 +60,9 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   /// 矩阵信息
   Matrix4 _matrix4;
 
+  /// 图片矩阵
+  Rect imgRect;
+
   // 按下手指个数
   int _pointerCount = 0;
   int get pointerCount => _pointerCount;
@@ -100,8 +103,11 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     super.build(context);
     _matrix4 = Matrix4.identity()
       ..scale(_scale, _scale)
-      ..rotateZ(_rotation)
+      // ..rotateZ(_rotation)
       ..translate(_moveX, _moveY);
+    Matrix4 imgMatrix4 = Matrix4.identity()
+      ..scale(_setScale, _setScale)
+      ..rotateZ(_rotation);
     return Scaffold(
       body: Container(
         child: RepaintBoundary(
@@ -111,11 +117,12 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
             alignment: FractionalOffset.center,
             child: Stack(
               children: [
-                // Transform.rotate(
-                //   angle: _rotation,
-                //   child: widget.background,
-                // ),
-                widget.background,
+                Transform(
+                  transform: imgMatrix4,
+                  alignment: FractionalOffset.center,
+                  child: widget.background,
+                ),
+                // widget.background,
                 CustomPaint(
                   size: Size.infinite,
                   painter: DrawBorad(paintList: paintList),
@@ -212,11 +219,10 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       /// 计算是否命中删除区域
       double delRadius = _tempText.delRadius;
       Rect tempTextRect = _tempText.textRect;
-      Rect delRect = RRect(
-          tempTextRect.left - delRadius,
-          tempTextRect.top - delRadius,
-          tempTextRect.left + delRadius,
-          tempTextRect.top + delRadius);
+      Rect delRect = Rect.fromCircle(
+        center: tempTextRect.topLeft,
+        radius: delRadius,
+      );
       if (_tempText.selected && delRect.contains(lp)) {
         paintList.remove(_tempText);
         _tempText = null;
@@ -231,7 +237,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     // 遍历查看是否命中事件
     for (var item in textList) {
       Rect textRect = item.textRect;
-      
+
       debugPrint(
           'onTapDown lp:${lp.toString()} textRect:${textRect.toString()} scale:${item.scale}');
       //计算是否命中事件
@@ -410,7 +416,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   /// 设置缩放
   /// [scale] 缩放
   void setScale(double scale) {
-    _scale = scale;
+    // _scale = scale;
     _setScale = scale;
     setState(() {});
   }
@@ -447,13 +453,19 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 重置
   void resetParams() {
-    _scale = _setScale;
+    _scale = 1.0;
     _moveX = 0;
     _moveY = 0;
     if (_tempText != null) {
       _tempText.selected = false;
     }
     _boradMode = BoradMode.Draw;
+    setState(() {});
+  }
+
+  /// 设置图片矩阵
+  void setImageRect(Rect rect) {
+    this.imgRect = rect;
     setState(() {});
   }
 
@@ -472,5 +484,22 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     print(pngBytes.length);
 
     return pngBytes;
+  }
+}
+
+class MyClipRect extends CustomClipper<Rect> {
+  MyClipRect({this.rect});
+
+  final Rect rect;
+
+  @override
+  Rect getClip(Size size) {
+    // return Rect.fromLTWH(0, 0, 40, 40);
+    return rect;
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Rect> oldClipper) {
+    return true;
   }
 }
