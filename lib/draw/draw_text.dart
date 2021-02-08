@@ -6,7 +6,6 @@ class DrawText extends BaseDraw {
   Color color = Color(0xFFFFFFFF); // 颜色
   double fontSize = 14; // 文字大小
   double scale = 1.0; // 缩放
-  double rotate = 0.0; // 旋转角度
   TextPainter tp; // 文字画笔
   // 文字矩阵
   Rect get textRect => (text?.isEmpty ?? true)

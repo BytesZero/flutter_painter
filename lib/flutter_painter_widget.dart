@@ -43,22 +43,25 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   /// 默认缩放信息
   double _scale = 1.0;
   double get scale => _scale;
-  double _setScale = 1.0;
+  double _bgScale = 1.0;
+  double get bgScale => _bgScale;
   double _tmpScale = 1.0;
   double _moveX = 0.0;
   double _tmpMoveX = 0.0;
   double _moveY = 0.0;
   double _tmpMoveY = 0.0;
-  double _rotation = 0.0;
+  // double _rotation = 0.0;
+  double _bgRotation = 0.0;
   // 获取旋转角度
-  double get rotate => _rotation;
+  double get backgroundRotation => _bgRotation;
   Offset _tmpFocal = Offset.zero;
 
   /// 是否被 90度的奇数，就是90和270
-  bool get is90 => (_rotation ~/ (pi / 2)).isOdd;
+  bool get is90 => (_bgRotation ~/ (pi / 2)).isOdd;
 
   /// 矩阵信息
   Matrix4 _matrix4;
+  Matrix4 _bgMatrix4;
 
   /// 图片矩阵
   Rect imgRect;
@@ -103,11 +106,10 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     super.build(context);
     _matrix4 = Matrix4.identity()
       ..scale(_scale, _scale)
-      // ..rotateZ(_rotation)
       ..translate(_moveX, _moveY);
-    Matrix4 imgMatrix4 = Matrix4.identity()
-      ..scale(_setScale, _setScale)
-      ..rotateZ(_rotation);
+    _bgMatrix4 = Matrix4.identity()
+      ..scale(_bgScale, _bgScale)
+      ..rotateZ(_bgRotation);
     return Scaffold(
       body: Container(
         child: RepaintBoundary(
@@ -118,36 +120,29 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
             child: Stack(
               children: [
                 Transform(
-                  transform: imgMatrix4,
+                  transform: _bgMatrix4,
                   alignment: FractionalOffset.center,
                   child: widget.background,
                 ),
-                // widget.background,
                 CustomPaint(
                   size: Size.infinite,
                   painter: DrawBorad(paintList: paintList),
                   child: Listener(
                       onPointerDown: (event) {
                         _pointerCount++;
-                        debugPrint('onPointerDown pointerCount:$_pointerCount');
                         _switchBoradMode();
                       },
                       onPointerUp: (event) {
                         _pointerCount--;
-                        debugPrint(
-                            'onPointerCancel pointerCount:$_pointerCount');
                         _switchBoradMode();
                       },
                       child: GestureDetector(
                         behavior: HitTestBehavior.opaque,
                         onTapDown: (details) {
-                          debugPrint('onTapDown');
                           // 设置按下事件信息
                           _tempTapDownDetails = details;
-                          // _handleOnPanStart(details.localPosition);
                         },
                         onTap: () {
-                          debugPrint('onTap');
                           _handleOnTap();
                         },
                         onScaleStart: (details) {
@@ -183,7 +178,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   }
 
   /// 设置画板模式
-  Future<void> setBoradMode(BoradMode mode) {
+  Future<void> setBoradMode(BoradMode mode) async {
     _boradMode = mode;
     // 不是编辑模式设置空
     if (mode != BoradMode.Edit && _tempText != null) {
@@ -287,43 +282,41 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 处理缩放移动更新事件
   void _handleOnScaleUpdate(ScaleUpdateDetails details) {
-    /// 与2pi度取余就是当前的角度
-    double absRotate = rotate.abs() % (2 * pi);
+    /// 计算运动距离
     double focalMoveX = (details.focalPoint.dx - _tmpFocal.dx);
     double focalMoveY = (details.focalPoint.dy - _tmpFocal.dy);
-    double absMoveX;
-    double absMoveY;
-    // 90度
-    if (absRotate == (pi / 2)) {
-      absMoveX = _tmpMoveY - focalMoveY / _tmpScale;
-      absMoveY = _tmpMoveX + focalMoveX / _tmpScale;
-    } else if (absRotate == pi) {
-      // 180度
-      absMoveX = _tmpMoveX - focalMoveX / _tmpScale;
-      absMoveY = _tmpMoveY - focalMoveY / _tmpScale;
-    } else if (absRotate == (pi * 1.5)) {
-      // 270 度
-      absMoveX = _tmpMoveY + focalMoveY / _tmpScale;
-      absMoveY = _tmpMoveX - focalMoveX / _tmpScale;
-    } else {
-      // 0度
-      absMoveX = _tmpMoveX + focalMoveX / _tmpScale;
-      absMoveY = _tmpMoveY + focalMoveY / _tmpScale;
-    }
+    double scale = _tmpScale * details.scale;
 
     /// 有选中文字处理选中文字
     if (_tempText != null && _tempText.selected) {
-      double textMoveX = _tmpMoveX + (details.focalPoint.dx - _tmpFocal.dx);
-      double textMoveY = _tmpMoveY + (details.focalPoint.dy - _tmpFocal.dy);
+      double textMoveX = _tmpMoveX + focalMoveX;
+      double textMoveY = _tmpMoveY + focalMoveY;
       _tempText.offset = Offset(textMoveX, textMoveY);
-
-      // _tempText.offset = Offset(absMoveX, absMoveY);
-      _tempText.scale = _tmpScale * details.scale;
+      _tempText.scale = scale;
     } else {
-      _moveX = absMoveX;
-      _moveY = absMoveY;
-      _scale = _tmpScale * details.scale;
-      // _rotation = _tmpRotation + details.rotation;
+      /// 这里是旋转使用，暂时去掉
+      // double absMoveX;
+      // double absMoveY;
+      // // 90度
+      // if (absRotate == (pi / 2)) {
+      //   absMoveX = _tmpMoveY - focalMoveY / _tmpScale;
+      //   absMoveY = _tmpMoveX + focalMoveX / _tmpScale;
+      // } else if (absRotate == pi) {
+      //   // 180度
+      //   absMoveX = _tmpMoveX - focalMoveX / _tmpScale;
+      //   absMoveY = _tmpMoveY - focalMoveY / _tmpScale;
+      // } else if (absRotate == (pi * 1.5)) {
+      //   // 270 度
+      //   absMoveX = _tmpMoveY + focalMoveY / _tmpScale;
+      //   absMoveY = _tmpMoveX - focalMoveX / _tmpScale;
+      // } else {
+      //   // 0度
+      //   absMoveX = _tmpMoveX + focalMoveX / _tmpScale;
+      //   absMoveY = _tmpMoveY + focalMoveY / _tmpScale;
+      // }
+      _moveX = _tmpMoveX + focalMoveX / _tmpScale;
+      _moveY = _tmpMoveY + focalMoveY / _tmpScale;
+      _scale = scale;
     }
 
     setState(() {});
@@ -394,7 +387,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       debugPrint('文字不能为空');
       return;
     }
-    text..rotate = _rotation;
     paintList.add(text);
     if (text.selected) {
       if (_tempText != null) {
@@ -408,16 +400,15 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 设置旋转角度
   /// [rotation] 旋转角度
-  void setRotation(double rotation) {
-    _rotation = rotation;
+  void setBackgroundRotation(double rotation) {
+    _bgRotation = rotation;
     setState(() {});
   }
 
   /// 设置缩放
   /// [scale] 缩放
   void setScale(double scale) {
-    // _scale = scale;
-    _setScale = scale;
+    _bgScale = scale;
     setState(() {});
   }
 
@@ -481,25 +472,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     ui.Image image = await boundary.toImage(pixelRatio: pixelRatio);
     ByteData byteData = await image.toByteData(format: ui.ImageByteFormat.png);
     Uint8List pngBytes = byteData.buffer.asUint8List();
-    print(pngBytes.length);
-
     return pngBytes;
-  }
-}
-
-class MyClipRect extends CustomClipper<Rect> {
-  MyClipRect({this.rect});
-
-  final Rect rect;
-
-  @override
-  Rect getClip(Size size) {
-    // return Rect.fromLTWH(0, 0, 40, 40);
-    return rect;
-  }
-
-  @override
-  bool shouldReclip(covariant CustomClipper<Rect> oldClipper) {
-    return true;
   }
 }

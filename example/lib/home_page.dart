@@ -203,7 +203,8 @@ class _HomePageState extends State<HomePage> {
                           onPressed: () {
                             painterKey?.currentState?.clearDraw();
                             rotation = rotation - pi / 2;
-                            painterKey?.currentState?.setRotation(rotation);
+                            painterKey?.currentState
+                                ?.setBackgroundRotation(rotation);
                           },
                         ),
                         SizedBox(width: 2),
