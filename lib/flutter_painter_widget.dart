@@ -146,7 +146,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
                           if (boradMode == BoradMode.Draw) {
                             debugPrint(
                                 'GestureDetector onTapDown BoradMode.Draw:${details.localPosition}');
-                            _handleOnPanUpdate(details.localPosition);
+                            _handleOnPanStart(details.localPosition);
                           }
                         },
                         onTap: () {
@@ -174,6 +174,12 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
                         },
                         onScaleEnd: (details) {
                           debugPrint('GestureDetector onScaleEnd');
+
+                          /// 解决双手放缩放会误触绘制点的问题
+                          if ((_tempLine?.linePath?.length ?? 0) <= 7 &&
+                              paintList.last == _tempLine) {
+                            paintList.removeLast();
+                          }
                           _tempLine = null;
                         },
                       )),
@@ -337,6 +343,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 处理滑动开始事件
   void _handleOnPanStart(Offset point) {
+    debugPrint('_handleOnPanStart ${point.toString()}');
     _tempLine = DrawLine()
       ..color = _brushColor
       ..lineWidth = _brushWidth;
@@ -346,8 +353,24 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 处理滑动更新事件
   void _handleOnPanUpdate(Offset point) {
+    debugPrint('_handleOnPanUpdate ${point.toString()}');
     if (_tempLine == null) {
+      debugPrint('_handleOnPanUpdate _tempLine == null:${point.toString()}');
       _handleOnPanStart(point);
+    }
+    debugPrint(
+        '_handleOnPanUpdate _tempLine != null:${_tempLine.linePath?.length}');
+    if (_tempLine.linePath?.length == 1) {
+      Offset tempOffset = _tempLine.linePath.first;
+      double absDx = (tempOffset.dx - point.dx).abs();
+      double absDy = (tempOffset.dy - point.dy).abs();
+      debugPrint('_handleOnPanUpdate tempOffset absDx:$absDx absDy:$absDy');
+      if (absDx > 3 || absDy > 3) {
+        debugPrint(
+            '_handleOnPanUpdate absDx > 3 || absDy > 3:$absDx absDy:$absDy');
+        paintList.removeLast();
+        _handleOnPanStart(point);
+      }
     }
     _tempLine.linePath.add(point);
     paintList.last = _tempLine;
