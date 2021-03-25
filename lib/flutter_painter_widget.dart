@@ -141,21 +141,14 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
                         onTapDown: (details) {
                           // 设置按下事件信息
                           _tempTapDownDetails = details;
-                          debugPrint(
-                              'GestureDetector onTapDown:${_tempTapDownDetails.localPosition}');
                           if (boradMode == BoradMode.Draw) {
-                            debugPrint(
-                                'GestureDetector onTapDown BoradMode.Draw:${details.localPosition}');
                             _handleOnPanStart(details.localPosition);
                           }
                         },
                         onTap: () {
-                          debugPrint('GestureDetector onTap');
                           _handleOnTap();
                         },
                         onScaleStart: (details) {
-                          debugPrint(
-                              'GestureDetector onScaleStart:${details.focalPoint}');
                           if (boradMode == BoradMode.Zoom ||
                               boradMode == BoradMode.Edit) {
                             _handleOnScaleStart(details);
@@ -164,7 +157,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
                           }
                         },
                         onScaleUpdate: (details) {
-                          debugPrint('GestureDetector onScaleUpdate');
                           if (boradMode == BoradMode.Zoom ||
                               boradMode == BoradMode.Edit) {
                             _handleOnScaleUpdate(details);
@@ -173,8 +165,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
                           }
                         },
                         onScaleEnd: (details) {
-                          debugPrint('GestureDetector onScaleEnd');
-
                           /// 解决双手放缩放会误触绘制点的问题
                           if ((_tempLine?.linePath?.length ?? 0) <= 7 &&
                               paintList.last == _tempLine) {
@@ -206,13 +196,9 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   /// 切换画板模式
   void _switchBoradMode() {
     if (_boradMode != BoradMode.Edit) {
-      debugPrint(
-          '_switchBoradMode _boradMode != BoradMode.Edit:$_pointerCount');
       if (_pointerCount > 1) {
-        debugPrint('_switchBoradMode _pointerCount > 1:$_pointerCount');
         _boradMode = BoradMode.Zoom;
       } else {
-        debugPrint('_switchBoradMode _pointerCount !> 1:$_pointerCount');
         _boradMode = BoradMode.Draw;
       }
       setState(() {});
@@ -227,8 +213,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   /// 处理点击事件
   void _handleOnTap() {
     Offset lp = _tempTapDownDetails.localPosition;
-    debugPrint('onTapDown details:${lp.toString()}');
-    debugPrint('onTapDown _tempText:${_tempText.toString()}');
     if (_tempText != null) {
       /// 计算是否命中删除区域
       double delRadius = _tempText.delRadius;
@@ -252,8 +236,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     for (var item in textList) {
       Rect textRect = item.textRect;
 
-      debugPrint(
-          'onTapDown lp:${lp.toString()} textRect:${textRect.toString()} scale:${item.scale}');
       //计算是否命中事件
       if (textRect.contains(lp)) {
         debugPrint('onTapDown 命中🎯');
@@ -274,7 +256,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
         }
         break;
       } else {
-        debugPrint('onTapDown 未命中');
         item.selected = false;
         _tempText = null;
         _boradMode = BoradMode.Draw;
@@ -343,7 +324,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 处理滑动开始事件
   void _handleOnPanStart(Offset point) {
-    debugPrint('_handleOnPanStart ${point.toString()}');
     _tempLine = DrawLine()
       ..color = _brushColor
       ..lineWidth = _brushWidth;
@@ -353,21 +333,16 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 处理滑动更新事件
   void _handleOnPanUpdate(Offset point) {
-    debugPrint('_handleOnPanUpdate ${point.toString()}');
     if (_tempLine == null) {
-      debugPrint('_handleOnPanUpdate _tempLine == null:${point.toString()}');
       _handleOnPanStart(point);
     }
-    debugPrint(
-        '_handleOnPanUpdate _tempLine != null:${_tempLine.linePath?.length}');
+
+    /// 这里是解决点击后再绘制会从点击的那个点开始绘制的问题，最终效果是多出一段距离来
     if (_tempLine.linePath?.length == 1) {
       Offset tempOffset = _tempLine.linePath.first;
       double absDx = (tempOffset.dx - point.dx).abs();
       double absDy = (tempOffset.dy - point.dy).abs();
-      debugPrint('_handleOnPanUpdate tempOffset absDx:$absDx absDy:$absDy');
       if (absDx > 3 || absDy > 3) {
-        debugPrint(
-            '_handleOnPanUpdate absDx > 3 || absDy > 3:$absDx absDy:$absDy');
         paintList.removeLast();
         _handleOnPanStart(point);
       }
@@ -420,8 +395,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   /// 添加文字
   void addText(DrawText text) {
     if (text?.text?.isEmpty ?? true) {
-      debugPrint('文字不能为空');
-      return;
+      throw Exception('添加的文字不能为空');
     }
     paintList.add(text);
     if (text.selected) {
