@@ -141,12 +141,21 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
                         onTapDown: (details) {
                           // 设置按下事件信息
                           _tempTapDownDetails = details;
+                          debugPrint(
+                              'GestureDetector onTapDown:${_tempTapDownDetails.localPosition}');
+                          if (boradMode == BoradMode.Draw) {
+                            debugPrint(
+                                'GestureDetector onTapDown BoradMode.Draw:${details.localPosition}');
+                            _handleOnPanUpdate(details.localPosition);
+                          }
                         },
                         onTap: () {
+                          debugPrint('GestureDetector onTap');
                           _handleOnTap();
                         },
                         onScaleStart: (details) {
-                          debugPrint('onScaleStart');
+                          debugPrint(
+                              'GestureDetector onScaleStart:${details.focalPoint}');
                           if (boradMode == BoradMode.Zoom ||
                               boradMode == BoradMode.Edit) {
                             _handleOnScaleStart(details);
@@ -155,7 +164,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
                           }
                         },
                         onScaleUpdate: (details) {
-                          debugPrint('onScaleUpdate');
+                          debugPrint('GestureDetector onScaleUpdate');
                           if (boradMode == BoradMode.Zoom ||
                               boradMode == BoradMode.Edit) {
                             _handleOnScaleUpdate(details);
@@ -164,7 +173,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
                           }
                         },
                         onScaleEnd: (details) {
-                          debugPrint('onScaleEnd');
+                          debugPrint('GestureDetector onScaleEnd');
                           _tempLine = null;
                         },
                       )),
@@ -191,9 +200,13 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   /// 切换画板模式
   void _switchBoradMode() {
     if (_boradMode != BoradMode.Edit) {
+      debugPrint(
+          '_switchBoradMode _boradMode != BoradMode.Edit:$_pointerCount');
       if (_pointerCount > 1) {
+        debugPrint('_switchBoradMode _pointerCount > 1:$_pointerCount');
         _boradMode = BoradMode.Zoom;
       } else {
+        debugPrint('_switchBoradMode _pointerCount !> 1:$_pointerCount');
         _boradMode = BoradMode.Draw;
       }
       setState(() {});
