@@ -166,7 +166,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
                         },
                         onScaleEnd: (details) {
                           /// 解决双手放缩放会误触绘制点的问题
-                          if ((_tempLine?.linePath?.length ?? 0) <= 7 &&
+                          if ((_tempLine?.linePath?.length ?? 0) <= 5 &&
+                              paintList.isNotEmpty &&
                               paintList.last == _tempLine) {
                             paintList.removeLast();
                           }
