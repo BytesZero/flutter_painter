@@ -134,7 +134,9 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
                       },
                       onPointerUp: (event) {
                         _pointerCount--;
-                        _switchBoradMode();
+
+                        /// 注释掉是解决双手放缩放会误触绘制点的问题
+                        // _switchBoradMode();
                       },
                       child: GestureDetector(
                         behavior: HitTestBehavior.opaque,
@@ -144,6 +146,10 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
                           if (boradMode == BoradMode.Draw) {
                             _handleOnPanStart(details.localPosition);
                           }
+                        },
+                        onTapUp: (details) {
+                          /// 这里是解决点击后再绘制会从点击的那个点开始绘制的问题，最终效果是多出一段距离来
+                          _tempLine = null;
                         },
                         onTap: () {
                           _handleOnTap();
@@ -165,12 +171,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
                           }
                         },
                         onScaleEnd: (details) {
-                          /// 解决双手放缩放会误触绘制点的问题
-                          if ((_tempLine?.linePath?.length ?? 0) <= 5 &&
-                              paintList.isNotEmpty &&
-                              paintList.last == _tempLine) {
-                            paintList.removeLast();
-                          }
                           _tempLine = null;
                         },
                       )),
@@ -330,27 +330,18 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       ..lineWidth = _brushWidth;
     _tempLine.linePath.add(point);
     paintList.add(_tempLine);
+    setState(() {});
   }
 
   /// 处理滑动更新事件
   void _handleOnPanUpdate(Offset point) {
     if (_tempLine == null) {
       _handleOnPanStart(point);
+    } else {
+      _tempLine.linePath.add(point);
+      paintList.last = _tempLine;
+      setState(() {});
     }
-
-    /// 这里是解决点击后再绘制会从点击的那个点开始绘制的问题，最终效果是多出一段距离来
-    if (_tempLine.linePath?.length == 1) {
-      Offset tempOffset = _tempLine.linePath.first;
-      double absDx = (tempOffset.dx - point.dx).abs();
-      double absDy = (tempOffset.dy - point.dy).abs();
-      if (absDx > 3 || absDy > 3) {
-        paintList.removeLast();
-        _handleOnPanStart(point);
-      }
-    }
-    _tempLine.linePath.add(point);
-    paintList.last = _tempLine;
-    setState(() {});
 
     /// 这里是计算区域的算法
     // Offset point = details.localFocalPoint;
