@@ -8,6 +8,9 @@ class DrawLine extends BaseDraw {
 
   @override
   void draw(Canvas canvas, Size size) {
+    if (linePath.isEmpty ?? true) {
+      return;
+    }
     // 设置画笔
     paint
       ..isAntiAlias = true
@@ -15,12 +18,29 @@ class DrawLine extends BaseDraw {
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeWidth = lineWidth;
-    // 绘制涂鸦
-    for (int i = 0; i < linePath.length - 1; i++) {
-      if (linePath[i] != null && linePath[i + 1] != null) {
-        // 绘制线
-        canvas.drawLine(linePath[i], linePath[i + 1], paint);
+    // 第一个点
+    Offset p0 = linePath[0];
+    Path path = Path()..moveTo(p0.dx, p0.dy);
+    // 线段数量
+    int lineCount = linePath.length - 1;
+    // 绘制线
+    for (int i = 1; i < lineCount; i++) {
+      // 获取前后两个点
+      Offset ps = linePath[i];
+      Offset pe = linePath[i + 1];
+      // 绘制线（老版本去掉）
+      // canvas.drawLine(ps, pe, paint);
+      // 计算前后两个点的中心点
+      double xc = (ps.dx + pe.dx) / 2;
+      double xy = (ps.dy + pe.dy) / 2;
+      // 使用二阶贝塞尔曲线生成 path
+      path.quadraticBezierTo(ps.dx, ps.dy, xc, xy);
+      // 添加最后一段 path
+      if (i == lineCount - 1) {
+        path.lineTo(pe.dx, pe.dy);
       }
     }
+
+    canvas.drawPath(path, paint..color = Color(0xFF2233FF));
   }
 }
