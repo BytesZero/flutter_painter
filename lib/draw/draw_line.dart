@@ -41,6 +41,6 @@ class DrawLine extends BaseDraw {
       }
     }
 
-    canvas.drawPath(path, paint..color = Color(0xFF2233FF));
+    canvas.drawPath(path, paint);
   }
 }

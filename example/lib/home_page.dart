@@ -269,8 +269,8 @@ class _HomePageState extends State<HomePage> {
       debugPrint('showEditTextPage text:$text colorValue:$colorValue');
       Color textColor = Color(colorValue);
       if (drawText == null) {
-        double padding = MediaQuery.of(context).padding.bottom;
-        Offset center = Size(430, 290).center(Offset(0, padding));
+        Size size = MediaQuery.of(context).size;
+        Offset center = size.center(Offset(0, 0));
         DrawText newDrawText = DrawText()
           ..text = text ?? ''
           ..drawSize = Size(0, 0)

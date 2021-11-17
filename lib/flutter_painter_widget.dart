@@ -78,7 +78,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   double _brushWidth = 2;
 
   // 绘制集合
-  List<BaseDraw> paintList = [];
+  DrawBoradListenable drawBoradListenable = DrawBoradListenable();
   // 临时线
   DrawLine _tempLine;
   // 临时文字，标记选中赋值
@@ -126,7 +126,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
                 ),
                 CustomPaint(
                   size: Size.infinite,
-                  painter: DrawBorad(paintList: paintList),
+                  painter: DrawBorad(drawBoradListenable),
                   child: Listener(
                       onPointerDown: (event) {
                         _pointerCount++;
@@ -223,7 +223,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
         radius: delRadius,
       );
       if (_tempText.selected && delRect.contains(lp)) {
-        paintList.remove(_tempText);
+        drawBoradListenable.remove(_tempText);
         _tempText = null;
         _boradMode = BoradMode.Draw;
         setState(() {});
@@ -232,7 +232,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     }
 
     /// 只获取文字
-    var textList = paintList.whereType<DrawText>();
+    var textList = drawBoradListenable.drawList.whereType<DrawText>();
     // 遍历查看是否命中事件
     for (var item in textList) {
       Rect textRect = item.textRect;
@@ -329,8 +329,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       ..color = _brushColor
       ..lineWidth = _brushWidth;
     _tempLine.linePath.add(point);
-    paintList.add(_tempLine);
-    setState(() {});
+    drawBoradListenable.add(_tempLine);
   }
 
   /// 处理滑动更新事件
@@ -339,7 +338,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       _handleOnPanStart(point);
     } else {
       _tempLine.linePath.add(point);
-      paintList.last = _tempLine;
+      drawBoradListenable.setLast(_tempLine);
       setState(() {});
     }
 
@@ -374,7 +373,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 添加线
   void addLine(DrawLine line) {
-    paintList.add(line);
+    drawBoradListenable.add(line);
     setState(() {});
   }
 
@@ -389,12 +388,12 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     if (text?.text?.isEmpty ?? true) {
       throw Exception('添加的文字不能为空');
     }
-    paintList.add(text);
+    drawBoradListenable.add(text);
     if (text.selected) {
       if (_tempText != null) {
         _tempText.selected = false;
       }
-      _tempText = paintList.last;
+      _tempText = drawBoradListenable.drawList.last;
       _boradMode = BoradMode.Edit;
     }
     setState(() {});
@@ -425,23 +424,21 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 回退
   void undo() {
-    if (paintList.isNotEmpty) {
-      var last = paintList.removeLast();
-      if (last == _tempText) {
-        _tempText = null;
-      }
+    var last = drawBoradListenable.removeLast();
+    if (last == _tempText) {
+      _tempText = null;
     }
     // 设置编辑模式
     _boradMode = BoradMode.Draw;
-    setState(() {});
+    // setState(() {});
   }
 
   /// 清空
   void clearDraw() {
-    paintList = [];
+    drawBoradListenable.clear();
     _tempText = null;
     _boradMode = BoradMode.Draw;
-    setState(() {});
+    // setState(() {});
   }
 
   /// 重置
