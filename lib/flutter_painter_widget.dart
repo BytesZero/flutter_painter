@@ -124,56 +124,58 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
                   alignment: FractionalOffset.center,
                   child: widget.background,
                 ),
-                CustomPaint(
-                  size: Size.infinite,
-                  painter: DrawBorad(drawBoradListenable),
-                  child: Listener(
-                      onPointerDown: (event) {
-                        _pointerCount++;
-                        _switchBoradMode();
-                      },
-                      onPointerUp: (event) {
-                        _pointerCount--;
+                RepaintBoundary(
+                  child: CustomPaint(
+                    size: Size.infinite,
+                    painter: DrawBorad(drawBoradListenable),
+                    child: Listener(
+                        onPointerDown: (event) {
+                          _pointerCount++;
+                          _switchBoradMode();
+                        },
+                        onPointerUp: (event) {
+                          _pointerCount--;
 
-                        /// 注释掉是解决双手放缩放会误触绘制点的问题
-                        // _switchBoradMode();
-                      },
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTapDown: (details) {
-                          // 设置按下事件信息
-                          _tempTapDownDetails = details;
-                          if (boradMode == BoradMode.Draw) {
-                            _handleOnPanStart(details.localPosition);
-                          }
+                          /// 注释掉是解决双手放缩放会误触绘制点的问题
+                          // _switchBoradMode();
                         },
-                        onTapUp: (details) {
-                          /// 这里是解决点击后再绘制会从点击的那个点开始绘制的问题，最终效果是多出一段距离来
-                          _tempLine = null;
-                        },
-                        onTap: () {
-                          _handleOnTap();
-                        },
-                        onScaleStart: (details) {
-                          if (boradMode == BoradMode.Zoom ||
-                              boradMode == BoradMode.Edit) {
-                            _handleOnScaleStart(details);
-                          } else {
-                            _handleOnPanUpdate(details.localFocalPoint);
-                          }
-                        },
-                        onScaleUpdate: (details) {
-                          if (boradMode == BoradMode.Zoom ||
-                              boradMode == BoradMode.Edit) {
-                            _handleOnScaleUpdate(details);
-                          } else {
-                            _handleOnPanUpdate(details.localFocalPoint);
-                          }
-                        },
-                        onScaleEnd: (details) {
-                          _tempLine = null;
-                        },
-                      )),
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTapDown: (details) {
+                            // 设置按下事件信息
+                            _tempTapDownDetails = details;
+                            if (boradMode == BoradMode.Draw) {
+                              _handleOnPanStart(details.localPosition);
+                            }
+                          },
+                          onTapUp: (details) {
+                            /// 这里是解决点击后再绘制会从点击的那个点开始绘制的问题，最终效果是多出一段距离来
+                            _tempLine = null;
+                          },
+                          onTap: () {
+                            _handleOnTap();
+                          },
+                          onScaleStart: (details) {
+                            if (boradMode == BoradMode.Zoom ||
+                                boradMode == BoradMode.Edit) {
+                              _handleOnScaleStart(details);
+                            } else {
+                              _handleOnPanUpdate(details.localFocalPoint);
+                            }
+                          },
+                          onScaleUpdate: (details) {
+                            if (boradMode == BoradMode.Zoom ||
+                                boradMode == BoradMode.Edit) {
+                              _handleOnScaleUpdate(details);
+                            } else {
+                              _handleOnPanUpdate(details.localFocalPoint);
+                            }
+                          },
+                          onScaleEnd: (details) {
+                            _tempLine = null;
+                          },
+                        )),
+                  ),
                 ),
               ],
             ),
