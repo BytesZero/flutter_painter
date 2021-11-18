@@ -117,67 +117,70 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
           child: Transform(
             transform: _matrix4,
             alignment: FractionalOffset.center,
-            child: Stack(
-              children: [
-                Transform(
-                  transform: _bgMatrix4,
-                  alignment: FractionalOffset.center,
-                  child: widget.background,
+            child: Listener(
+              onPointerDown: (event) {
+                // 处理触点异常的问题
+                if (_pointerCount < 0) _pointerCount = 0;
+                _pointerCount++;
+                _switchBoradMode();
+              },
+              onPointerUp: (event) {
+                // 处理触点异常的问题
+                if (_pointerCount > 0) _pointerCount--;
+              },
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTapDown: (details) {
+                  // 设置按下事件信息
+                  _tempTapDownDetails = details;
+                  if (boradMode == BoradMode.Draw) {
+                    _handleOnPanStart(details.localPosition);
+                  }
+                },
+                onTapUp: (details) {
+                  /// 这里是解决点击后再绘制会从点击的那个点开始绘制的问题，最终效果是多出一段距离来
+                  _tempLine = null;
+                  // 处理触点异常导致的无法绘制的问题
+                  if (_pointerCount > 1) _pointerCount = 1;
+                },
+                onTap: () {
+                  _handleOnTap();
+                },
+                onScaleStart: (details) {
+                  if (boradMode == BoradMode.Zoom ||
+                      boradMode == BoradMode.Edit) {
+                    _handleOnScaleStart(details);
+                  } else {
+                    _handleOnPanUpdate(details.localFocalPoint);
+                  }
+                },
+                onScaleUpdate: (details) {
+                  if (boradMode == BoradMode.Zoom ||
+                      boradMode == BoradMode.Edit) {
+                    _handleOnScaleUpdate(details);
+                  } else {
+                    _handleOnPanUpdate(details.localFocalPoint);
+                  }
+                },
+                onScaleEnd: (details) {
+                  _tempLine = null;
+                },
+                child: Stack(
+                  children: [
+                    Transform(
+                      transform: _bgMatrix4,
+                      alignment: FractionalOffset.center,
+                      child: widget.background,
+                    ),
+                    RepaintBoundary(
+                      child: CustomPaint(
+                        size: Size.infinite,
+                        painter: DrawBorad(drawBoradListenable),
+                      ),
+                    ),
+                  ],
                 ),
-                RepaintBoundary(
-                  child: CustomPaint(
-                    size: Size.infinite,
-                    painter: DrawBorad(drawBoradListenable),
-                    child: Listener(
-                        onPointerDown: (event) {
-                          _pointerCount++;
-                          _switchBoradMode();
-                        },
-                        onPointerUp: (event) {
-                          _pointerCount--;
-
-                          /// 注释掉是解决双手放缩放会误触绘制点的问题
-                          // _switchBoradMode();
-                        },
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTapDown: (details) {
-                            // 设置按下事件信息
-                            _tempTapDownDetails = details;
-                            if (boradMode == BoradMode.Draw) {
-                              _handleOnPanStart(details.localPosition);
-                            }
-                          },
-                          onTapUp: (details) {
-                            /// 这里是解决点击后再绘制会从点击的那个点开始绘制的问题，最终效果是多出一段距离来
-                            _tempLine = null;
-                          },
-                          onTap: () {
-                            _handleOnTap();
-                          },
-                          onScaleStart: (details) {
-                            if (boradMode == BoradMode.Zoom ||
-                                boradMode == BoradMode.Edit) {
-                              _handleOnScaleStart(details);
-                            } else {
-                              _handleOnPanUpdate(details.localFocalPoint);
-                            }
-                          },
-                          onScaleUpdate: (details) {
-                            if (boradMode == BoradMode.Zoom ||
-                                boradMode == BoradMode.Edit) {
-                              _handleOnScaleUpdate(details);
-                            } else {
-                              _handleOnPanUpdate(details.localFocalPoint);
-                            }
-                          },
-                          onScaleEnd: (details) {
-                            _tempLine = null;
-                          },
-                        )),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ),
@@ -204,7 +207,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       } else {
         _boradMode = BoradMode.Draw;
       }
-      setState(() {});
     }
 
     /// 返回按下手指数
@@ -228,7 +230,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
         drawBoradListenable.remove(_tempText);
         _tempText = null;
         _boradMode = BoradMode.Draw;
-        setState(() {});
         return;
       }
     }
@@ -297,26 +298,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       _tempText.offset = Offset(textMoveX, textMoveY);
       _tempText.scale = scale;
     } else {
-      /// 这里是旋转使用，暂时去掉
-      // double absMoveX;
-      // double absMoveY;
-      // // 90度
-      // if (absRotate == (pi / 2)) {
-      //   absMoveX = _tmpMoveY - focalMoveY / _tmpScale;
-      //   absMoveY = _tmpMoveX + focalMoveX / _tmpScale;
-      // } else if (absRotate == pi) {
-      //   // 180度
-      //   absMoveX = _tmpMoveX - focalMoveX / _tmpScale;
-      //   absMoveY = _tmpMoveY - focalMoveY / _tmpScale;
-      // } else if (absRotate == (pi * 1.5)) {
-      //   // 270 度
-      //   absMoveX = _tmpMoveY + focalMoveY / _tmpScale;
-      //   absMoveY = _tmpMoveX - focalMoveX / _tmpScale;
-      // } else {
-      //   // 0度
-      //   absMoveX = _tmpMoveX + focalMoveX / _tmpScale;
-      //   absMoveY = _tmpMoveY + focalMoveY / _tmpScale;
-      // }
       _moveX = _tmpMoveX + focalMoveX / _tmpScale;
       _moveY = _tmpMoveY + focalMoveY / _tmpScale;
       _scale = scale;
@@ -341,26 +322,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     } else {
       _tempLine.linePath.add(point);
       drawBoradListenable.setLast(_tempLine);
-      setState(() {});
     }
-
-    /// 这里是计算区域的算法
-    // Offset point = details.localFocalPoint;
-    // Size size = Size(widget.width, widget.height);
-    // if (_rotation % (pi / 2) == 0) {
-    //   size = Size(widget.height, widget.width);
-    // }
-    // RenderBox referenceBox = context.findRenderObject();
-    // Offset point = referenceBox.globalToLocal(details.globalPosition);
-    // Offset point = details.localPosition;
-    // if (point.dx >= 0 &&
-    //     point.dx <= size.width &&
-    //     point.dy >= 0 &&
-    //     point.dy <= size.height) {
-    // } else {
-    //   _tempLine = null;
-    //   setState(() {});
-    // }
   }
 
   /// 设置画笔颜色
@@ -376,13 +338,11 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   /// 添加线
   void addLine(DrawLine line) {
     drawBoradListenable.add(line);
-    setState(() {});
   }
 
   /// 更新文字信息
   void updateTempText(DrawText text) {
     _tempText = text;
-    setState(() {});
   }
 
   /// 添加文字
@@ -392,13 +352,13 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     }
     drawBoradListenable.add(text);
     if (text.selected) {
+      // 去掉原有的选中状态
       if (_tempText != null) {
         _tempText.selected = false;
       }
-      _tempText = drawBoradListenable.drawList.last;
+      _tempText = text;
       _boradMode = BoradMode.Edit;
     }
-    setState(() {});
   }
 
   /// 设置旋转角度
