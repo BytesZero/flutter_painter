@@ -28,8 +28,6 @@ class DrawLine extends BaseDraw {
       // 获取前后两个点
       Offset ps = linePath[i];
       Offset pe = linePath[i + 1];
-      // 绘制线（老版本去掉）
-      // canvas.drawLine(ps, pe, paint);
       // 计算前后两个点的中心点
       double xc = (ps.dx + pe.dx) / 2;
       double xy = (ps.dy + pe.dy) / 2;

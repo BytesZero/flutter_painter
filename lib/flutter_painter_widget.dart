@@ -84,9 +84,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   DrawBoradListenable drawBoradListenable = DrawBoradListenable();
   // 临时线
   DrawLine _tempLine;
-  // 临时文字，标记选中赋值
-  // DrawText _tempText;
-  var _tempText;
+  // 临时编辑内容，标记选中赋值
+  var _tempEdit;
   // 临时按下事件记录，防止事件错乱
   TapDownDetails _tempTapDownDetails;
 
@@ -196,9 +195,9 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   Future<void> setBoradMode(BoradMode mode) async {
     _boradMode = mode;
     // 不是编辑模式设置空
-    if (mode != BoradMode.Edit && _tempText != null) {
-      _tempText.selected = false;
-      _tempText = null;
+    if (mode != BoradMode.Edit && _tempEdit != null) {
+      _tempEdit.selected = false;
+      _tempEdit = null;
     }
     setState(() {});
   }
@@ -222,84 +221,54 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   /// 处理点击事件
   void _handleOnTap() {
     Offset lp = _tempTapDownDetails.localPosition;
-    if (_tempText != null) {
-      /// 计算是否命中删除区域
-      double delRadius = _tempText.delRadius;
-      Rect tempTextRect = _tempText.rect;
+    if (_tempEdit != null) {
+      /// 计算删除区域
+      double delRadius = _tempEdit.delRadius;
+      Rect tempTextRect = _tempEdit.rect;
       Rect delRect = Rect.fromCircle(
         center: tempTextRect.topLeft,
         radius: delRadius,
       );
-      if (_tempText.selected && delRect.contains(lp)) {
-        drawBoradListenable.remove(_tempText);
-        _tempText = null;
+      // 编辑选中并且命中删除区域
+      if (_tempEdit.selected && delRect.contains(lp)) {
+        drawBoradListenable.remove(_tempEdit);
+        _tempEdit = null;
         _boradMode = BoradMode.Draw;
         return;
       }
     }
 
     /// 只获取文字
-    var textList = drawBoradListenable.drawList.whereType<DrawEdit>();
+    var editList = drawBoradListenable.drawList.whereType<DrawEdit>();
     // 遍历查看是否命中事件
-    for (var item in textList) {
+    for (var item in editList) {
       Rect textRect = item.rect;
-
       //计算是否命中事件
       if (textRect.contains(lp)) {
         // 命中的是上次命中的，那么触发编辑
         if (item.selected) {
+          // 二次命中触发文字编辑
           if ((item is DrawText) && (widget.onTapText != null)) {
             widget.onTapText(item);
           }
         } else {
           // 先设置为不选中状态
-          _tempText?.selected = false;
+          _tempEdit?.selected = false;
           // 然后赋值设置为选中状态
-          _tempText = item;
-          _tempText.selected = true;
+          _tempEdit = item;
+          _tempEdit.selected = true;
           _boradMode = BoradMode.Edit;
           setState(() {});
         }
         break;
       } else {
+        // 未命中，不选中
         item.selected = false;
-        _tempText = null;
+        _tempEdit = null;
         _boradMode = BoradMode.Draw;
         setState(() {});
       }
     }
-
-    // /// 只获取文字
-    // var imageList = drawBoradListenable.drawList.whereType<DrawImage>();
-    // // 遍历查看是否命中事件
-    // for (var item in imageList) {
-    //   Rect textRect = item.rect;
-
-    //   //计算是否命中事件
-    //   if (textRect.contains(lp)) {
-    //     // 命中的是上次命中的，那么触发编辑
-    //     if (item.selected) {
-    //       // if (widget.onTapText != null) {
-    //       // widget.onTapText(item);
-    //       // }
-    //     } else {
-    //       // 先设置为不选中状态
-    //       // _tempText?.selected = false;
-    //       // 然后赋值设置为选中状态
-    //       // _tempText = item;
-    //       // _tempText.selected = true;
-    //       item.selected = true;
-    //       _boradMode = BoradMode.Edit;
-    //       setState(() {});
-    //     }
-    //     break;
-    //   } else {
-    //     item.selected = false;
-    //     // _tempText = null;
-    //     _boradMode = BoradMode.Draw;
-    //     setState(() {});
-    //   }
-    // }
   }
 
   /// 处理缩放移动开始事件
@@ -307,10 +276,10 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     _tmpFocal = details.focalPoint;
 
     /// 有选中文字处理选中文字
-    if (_tempText != null && _tempText.selected) {
-      _tmpMoveX = _tempText.offset.dx;
-      _tmpMoveY = _tempText.offset.dy;
-      _tmpScale = _tempText.scale;
+    if (_tempEdit != null && _tempEdit.selected) {
+      _tmpMoveX = _tempEdit.offset.dx;
+      _tmpMoveY = _tempEdit.offset.dy;
+      _tmpScale = _tempEdit.scale;
     } else {
       _tmpMoveX = is90 ? _moveY : _moveX;
       _tmpMoveY = is90 ? _moveX : _moveY;
@@ -326,11 +295,11 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     double scale = _tmpScale * details.scale;
 
     /// 有选中文字处理选中文字
-    if (_tempText != null && _tempText.selected) {
+    if (_tempEdit != null && _tempEdit.selected) {
       double textMoveX = _tmpMoveX + focalMoveX;
       double textMoveY = _tmpMoveY + focalMoveY;
-      _tempText.offset = Offset(textMoveX, textMoveY);
-      _tempText.scale = scale;
+      _tempEdit.offset = Offset(textMoveX, textMoveY);
+      _tempEdit.scale = scale;
     } else {
       _moveX = _tmpMoveX + focalMoveX / _tmpScale;
       _moveY = _tmpMoveY + focalMoveY / _tmpScale;
@@ -376,7 +345,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 更新文字信息
   void updateTempText(DrawText text) {
-    _tempText = text;
+    _tempEdit = text;
   }
 
   /// 添加文字
@@ -387,10 +356,10 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     drawBoradListenable.add(text);
     if (text.selected) {
       // 去掉原有的选中状态
-      if (_tempText != null) {
-        _tempText.selected = false;
+      if (_tempEdit != null) {
+        _tempEdit.selected = false;
       }
-      _tempText = text;
+      _tempEdit = text;
       _boradMode = BoradMode.Edit;
     }
   }
@@ -448,8 +417,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   /// 回退
   void undo() {
     var last = drawBoradListenable.removeLast();
-    if (last == _tempText) {
-      _tempText = null;
+    if (last == _tempEdit) {
+      _tempEdit = null;
     }
     // 设置编辑模式
     _boradMode = BoradMode.Draw;
@@ -459,7 +428,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   /// 清空
   void clearDraw() {
     drawBoradListenable.clear();
-    _tempText = null;
+    _tempEdit = null;
     _boradMode = BoradMode.Draw;
     _pointerCount = 0;
   }
@@ -469,8 +438,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     _scale = 1.0;
     _moveX = 0;
     _moveY = 0;
-    if (_tempText != null) {
-      _tempText.selected = false;
+    if (_tempEdit != null) {
+      _tempEdit.selected = false;
     }
     _boradMode = BoradMode.Draw;
     _pointerCount = 0;
