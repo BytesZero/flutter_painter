@@ -239,6 +239,22 @@ class _HomePageState extends State<HomePage> {
                             showEditTextDialog();
                           },
                         ),
+                        SizedBox(width: 2),
+                        FloatingActionButton(
+                          child: Icon(
+                            Icons.image_outlined,
+                          ),
+                          tooltip: '图片',
+                          heroTag: 'image',
+                          onPressed: () {
+                            Size size = MediaQuery.of(context).size;
+                            Offset center = size.center(Offset(0, 0));
+                            painterKey.currentState.addImageAsset(
+                              imgPath: 'assets/icons/icon_shoubiao.png',
+                              offset: center,
+                            );
+                          },
+                        ),
                       ],
                     ),
                     SizedBox(width: 6),

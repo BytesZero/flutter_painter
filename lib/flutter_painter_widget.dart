@@ -3,6 +3,9 @@ import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_painter/draw/draw_edit.dart';
+import 'package:flutter_painter/draw/draw_image.dart';
 import 'dart:ui' as ui;
 import 'draw/draw_borad.dart';
 import 'draw/draw_line.dart';
@@ -82,7 +85,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   // 临时线
   DrawLine _tempLine;
   // 临时文字，标记选中赋值
-  DrawText _tempText;
+  // DrawText _tempText;
+  var _tempText;
   // 临时按下事件记录，防止事件错乱
   TapDownDetails _tempTapDownDetails;
 
@@ -221,7 +225,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     if (_tempText != null) {
       /// 计算是否命中删除区域
       double delRadius = _tempText.delRadius;
-      Rect tempTextRect = _tempText.textRect;
+      Rect tempTextRect = _tempText.rect;
       Rect delRect = Rect.fromCircle(
         center: tempTextRect.topLeft,
         radius: delRadius,
@@ -235,16 +239,16 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     }
 
     /// 只获取文字
-    var textList = drawBoradListenable.drawList.whereType<DrawText>();
+    var textList = drawBoradListenable.drawList.whereType<DrawEdit>();
     // 遍历查看是否命中事件
     for (var item in textList) {
-      Rect textRect = item.textRect;
+      Rect textRect = item.rect;
 
       //计算是否命中事件
       if (textRect.contains(lp)) {
         // 命中的是上次命中的，那么触发编辑
         if (item.selected) {
-          if (widget.onTapText != null) {
+          if ((item is DrawText) && (widget.onTapText != null)) {
             widget.onTapText(item);
           }
         } else {
@@ -264,6 +268,38 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
         setState(() {});
       }
     }
+
+    // /// 只获取文字
+    // var imageList = drawBoradListenable.drawList.whereType<DrawImage>();
+    // // 遍历查看是否命中事件
+    // for (var item in imageList) {
+    //   Rect textRect = item.rect;
+
+    //   //计算是否命中事件
+    //   if (textRect.contains(lp)) {
+    //     // 命中的是上次命中的，那么触发编辑
+    //     if (item.selected) {
+    //       // if (widget.onTapText != null) {
+    //       // widget.onTapText(item);
+    //       // }
+    //     } else {
+    //       // 先设置为不选中状态
+    //       // _tempText?.selected = false;
+    //       // 然后赋值设置为选中状态
+    //       // _tempText = item;
+    //       // _tempText.selected = true;
+    //       item.selected = true;
+    //       _boradMode = BoradMode.Edit;
+    //       setState(() {});
+    //     }
+    //     break;
+    //   } else {
+    //     item.selected = false;
+    //     // _tempText = null;
+    //     _boradMode = BoradMode.Draw;
+    //     setState(() {});
+    //   }
+    // }
   }
 
   /// 处理缩放移动开始事件
@@ -357,6 +393,33 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       _tempText = text;
       _boradMode = BoradMode.Edit;
     }
+  }
+
+  /// 添加图片
+  /// [image] 绘制图片
+  void addImage(DrawImage image) {
+    drawBoradListenable.add(image);
+  }
+
+  /// 添加图片
+  /// [imgPath] 图片地址
+  /// [offset] 图片位置偏移量
+  /// [drawSize] 绘制图片大小
+  void addImageAsset({String imgPath, Offset offset, Size drawSize}) async {
+    // 获取图片数据
+    ByteData data = await rootBundle.load(imgPath);
+    Uint8List bytes =
+        data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+    ui.Image imgData = await decodeImageFromList(bytes);
+
+    // 添加绘制图片
+    addImage(
+      DrawImage()
+        ..image = imgData
+        ..offset = offset
+        // ..selected = true
+        ..drawSize = drawSize,
+    );
   }
 
   /// 设置旋转角度
