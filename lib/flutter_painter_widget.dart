@@ -242,8 +242,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
       //计算是否命中事件
       if (textRect.contains(lp)) {
-        debugPrint('onTapDown 命中🎯');
-
         // 命中的是上次命中的，那么触发编辑
         if (item.selected) {
           if (widget.onTapText != null) {
@@ -392,7 +390,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     }
     // 设置编辑模式
     _boradMode = BoradMode.Draw;
-    // setState(() {});
+    _pointerCount = 0;
   }
 
   /// 清空
@@ -400,7 +398,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     drawBoradListenable.clear();
     _tempText = null;
     _boradMode = BoradMode.Draw;
-    // setState(() {});
+    _pointerCount = 0;
   }
 
   /// 重置
@@ -412,6 +410,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       _tempText.selected = false;
     }
     _boradMode = BoradMode.Draw;
+    _pointerCount = 0;
     setState(() {});
   }
 
