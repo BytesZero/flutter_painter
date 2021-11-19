@@ -24,14 +24,19 @@ class FlutterPainterWidget extends StatefulWidget {
     this.onTapText,
     this.onPointerCount,
   }) : super(key: key);
+  // 背景 Widget
   final Widget background;
+  // 宽度
   final double width;
+  // 高度
   final double height;
   // 画笔颜色
   final Color brushColor;
   // 画笔粗细
   final double brushWidth;
+  // 文字编辑点击
   final ValueChanged<DrawText> onTapText;
+  // 手指按下数量变化监听
   final ValueChanged<int> onPointerCount;
 
   @override
@@ -196,7 +201,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     _boradMode = mode;
     // 不是编辑模式设置空
     if (mode != BoradMode.Edit && _tempEdit != null) {
-      _tempEdit.selected = false;
+      drawBoradListenable.setSelect(_tempEdit, false);
       _tempEdit = null;
     }
     setState(() {});
@@ -211,8 +216,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
         _boradMode = BoradMode.Draw;
       }
     }
-
-    /// 返回按下手指数
+    // 返回按下手指数
     if (widget.onPointerCount != null) {
       widget.onPointerCount(_pointerCount);
     }
@@ -222,11 +226,11 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   void _handleOnTap() {
     Offset lp = _tempTapDownDetails.localPosition;
     if (_tempEdit != null) {
-      /// 计算删除区域
+      // 计算删除区域
       double delRadius = _tempEdit.delRadius;
-      Rect tempTextRect = _tempEdit.rect;
+      Rect tempRect = _tempEdit.rect;
       Rect delRect = Rect.fromCircle(
-        center: tempTextRect.topLeft,
+        center: tempRect.topLeft,
         radius: delRadius,
       );
       // 编辑选中并且命中删除区域
@@ -263,7 +267,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       } else {
         // 未命中，不选中
         drawBoradListenable.setSelect(item, false);
-        _tempEdit = null;
         _boradMode = BoradMode.Draw;
         _pointerCount = 0;
       }
@@ -273,8 +276,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   /// 处理缩放移动开始事件
   void _handleOnScaleStart(ScaleStartDetails details) {
     _tmpFocal = details.focalPoint;
-
-    /// 有选中文字处理选中文字
+    // 有选中文字处理选中文字
     if (_tempEdit != null && _tempEdit.selected) {
       _tmpMoveX = _tempEdit.offset.dx;
       _tmpMoveY = _tempEdit.offset.dy;
