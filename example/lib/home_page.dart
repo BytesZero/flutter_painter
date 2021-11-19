@@ -264,7 +264,6 @@ class _HomePageState extends State<HomePage> {
                   children: imageList.map((img) {
                     return GestureDetector(
                       onTap: () {
-                        // painterKey?.currentState?.setBrushWidth(width);
                         Size size = MediaQuery.of(context).size;
                         Offset center = size.center(Offset(0, 0));
                         painterKey.currentState.addImageAsset(

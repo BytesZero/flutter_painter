@@ -253,24 +253,19 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
           }
         } else {
           // 先设置为不选中状态
-          // _tempEdit?.selected = false;
           drawBoradListenable.setSelect(_tempEdit, false);
           // 然后赋值设置为选中状态
           _tempEdit = item;
-          // _tempEdit.selected = true;
           drawBoradListenable.setSelect(_tempEdit, true);
           _boradMode = BoradMode.Edit;
-          // setState(() {});
         }
         break;
       } else {
         // 未命中，不选中
-        // item.selected = false;
         drawBoradListenable.setSelect(item, false);
         _tempEdit = null;
         _boradMode = BoradMode.Draw;
         _pointerCount = 0;
-        // setState(() {});
       }
     }
   }
@@ -450,9 +445,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     _scale = 1.0;
     _moveX = 0;
     _moveY = 0;
-    if (_tempEdit != null) {
-      _tempEdit.selected = false;
-    }
+    drawBoradListenable.setSelect(_tempEdit, false);
+    _tempEdit = null;
     _boradMode = BoradMode.Draw;
     _pointerCount = 0;
     setState(() {});

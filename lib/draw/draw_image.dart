@@ -34,13 +34,13 @@ class DrawImage extends BaseDraw with DrawEdit {
         paint,
       );
       // 绘制外围辅助线条
-      canvas.drawRect(
-        rect,
-        paint
-          ..color = Color(0xff2233ff)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 4,
-      );
+      // canvas.drawRect(
+      //   rect,
+      //   paint
+      //     ..color = Color(0xff2233ff)
+      //     ..style = PaintingStyle.stroke
+      //     ..strokeWidth = 4,
+      // );
       // 绘制编辑
       drawEdit(canvas, paint);
     }
