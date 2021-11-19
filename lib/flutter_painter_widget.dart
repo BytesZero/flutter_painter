@@ -253,20 +253,24 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
           }
         } else {
           // 先设置为不选中状态
-          _tempEdit?.selected = false;
+          // _tempEdit?.selected = false;
+          drawBoradListenable.setSelect(_tempEdit, false);
           // 然后赋值设置为选中状态
           _tempEdit = item;
-          _tempEdit.selected = true;
+          // _tempEdit.selected = true;
+          drawBoradListenable.setSelect(_tempEdit, true);
           _boradMode = BoradMode.Edit;
-          setState(() {});
+          // setState(() {});
         }
         break;
       } else {
         // 未命中，不选中
-        item.selected = false;
+        // item.selected = false;
+        drawBoradListenable.setSelect(item, false);
         _tempEdit = null;
         _boradMode = BoradMode.Draw;
-        setState(() {});
+        _pointerCount = 0;
+        // setState(() {});
       }
     }
   }
@@ -356,9 +360,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     drawBoradListenable.add(text);
     if (text.selected) {
       // 去掉原有的选中状态
-      if (_tempEdit != null) {
-        _tempEdit.selected = false;
-      }
+      drawBoradListenable.setSelect(_tempEdit, false);
       _tempEdit = text;
       _boradMode = BoradMode.Edit;
     }
@@ -368,13 +370,23 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   /// [image] 绘制图片
   void addImage(DrawImage image) {
     drawBoradListenable.add(image);
+    if (image.selected) {
+      // 去掉原有的选中状态
+      drawBoradListenable.setSelect(_tempEdit, false);
+      _tempEdit = image;
+      _boradMode = BoradMode.Edit;
+    }
   }
 
   /// 添加图片
   /// [imgPath] 图片地址
   /// [offset] 图片位置偏移量
   /// [drawSize] 绘制图片大小
-  void addImageAsset({String imgPath, Offset offset, Size drawSize}) async {
+  void addImageAsset(
+      {String imgPath,
+      Offset offset,
+      Size drawSize,
+      bool selected = true}) async {
     // 获取图片数据
     ByteData data = await rootBundle.load(imgPath);
     Uint8List bytes =
@@ -386,7 +398,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       DrawImage()
         ..image = imgData
         ..offset = offset
-        // ..selected = true
+        ..selected = selected
         ..drawSize = drawSize,
     );
   }

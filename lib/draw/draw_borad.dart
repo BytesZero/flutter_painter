@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'base_draw.dart';
+import 'draw_edit.dart';
 
 /// 画板
 class DrawBorad extends CustomPainter {
@@ -73,6 +74,14 @@ class DrawBoradListenable extends ChangeNotifier {
   void setLast(BaseDraw draw) {
     if (_drawList.isNotEmpty) {
       _drawList.last = draw;
+      notifyListeners();
+    }
+  }
+
+  /// 设置编辑实体选中
+  void setSelect(DrawEdit draw, [bool selected = true]) {
+    if (draw != null) {
+      draw.selected = selected;
       notifyListeners();
     }
   }

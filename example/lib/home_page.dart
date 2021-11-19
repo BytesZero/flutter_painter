@@ -44,6 +44,14 @@ class _HomePageState extends State<HomePage> {
     8,
   ];
 
+  // 图片资源列表
+  List<String> imageList = [
+    'assets/icons/icon_shoubiao.png',
+    'assets/icons/icon_coffe.png',
+    'assets/icons/icon_bangbangtang.png',
+    'assets/icons/icon_shuibei.png',
+  ];
+
   /// 旋转角度
   double rotation = 0.0;
 
@@ -122,65 +130,60 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     SizedBox(height: 10),
-                    AnimatedOpacity(
-                      duration: Duration(milliseconds: 300),
-                      // opacity: boradMode == BoradMode.Draw ? 1 : 0,
-                      opacity: 1,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        padding:
-                            EdgeInsets.symmetric(vertical: 4, horizontal: 10),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: brushWidthList.map((width) {
-                            return GestureDetector(
-                              onTap: () {
-                                brushWidth = width;
-                                setState(() {});
-                                painterKey?.currentState?.setBrushWidth(width);
-                              },
-                              child: Container(
-                                  height: 36,
-                                  width: 36,
-                                  margin: EdgeInsets.all(6),
-                                  padding: EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(30),
-                                    border: Border.all(
-                                      color: brushWidth == width
-                                          ? Colors.white
-                                          : Colors.transparent,
-                                      width: 2,
-                                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      padding:
+                          EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: brushWidthList.map((width) {
+                          return GestureDetector(
+                            onTap: () {
+                              brushWidth = width;
+                              setState(() {});
+                              painterKey?.currentState?.setBrushWidth(width);
+                            },
+                            child: Container(
+                                height: 36,
+                                width: 36,
+                                margin: EdgeInsets.all(6),
+                                padding: EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(30),
+                                  border: Border.all(
+                                    color: brushWidth == width
+                                        ? Colors.white
+                                        : Colors.transparent,
+                                    width: 2,
                                   ),
-                                  child: Column(
-                                    children: [
-                                      Icon(
-                                        Icons.brush_rounded,
-                                        size: 16,
+                                ),
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      Icons.brush_rounded,
+                                      size: 16,
+                                      color: brushWidth == width
+                                          ? selectColor
+                                          : Colors.black54,
+                                    ),
+                                    Container(
+                                      height: width,
+                                      width: 18,
+                                      decoration: BoxDecoration(
                                         color: brushWidth == width
                                             ? selectColor
-                                            : Colors.black54,
+                                            : Colors.black87,
+                                        borderRadius:
+                                            BorderRadius.circular(width),
                                       ),
-                                      Container(
-                                        height: width,
-                                        width: 18,
-                                        decoration: BoxDecoration(
-                                          color: brushWidth == width
-                                              ? selectColor
-                                              : Colors.black87,
-                                          borderRadius:
-                                              BorderRadius.circular(width),
-                                        ),
-                                      ),
-                                    ],
-                                  )),
-                            );
-                          }).toList(),
-                        ),
+                                    ),
+                                  ],
+                                )),
+                          );
+                        }).toList(),
                       ),
                     ),
                     SizedBox(height: 20),
@@ -239,22 +242,6 @@ class _HomePageState extends State<HomePage> {
                             showEditTextDialog();
                           },
                         ),
-                        SizedBox(width: 2),
-                        FloatingActionButton(
-                          child: Icon(
-                            Icons.image_outlined,
-                          ),
-                          tooltip: '图片',
-                          heroTag: 'image',
-                          onPressed: () {
-                            Size size = MediaQuery.of(context).size;
-                            Offset center = size.center(Offset(0, 0));
-                            painterKey.currentState.addImageAsset(
-                              imgPath: 'assets/icons/icon_shoubiao.png',
-                              offset: center,
-                            );
-                          },
-                        ),
                       ],
                     ),
                     SizedBox(width: 6),
@@ -262,6 +249,40 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
+            Positioned(
+              right: 0,
+              bottom: 100,
+              width: 120,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                padding: EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: imageList.map((img) {
+                    return GestureDetector(
+                      onTap: () {
+                        // painterKey?.currentState?.setBrushWidth(width);
+                        Size size = MediaQuery.of(context).size;
+                        Offset center = size.center(Offset(0, 0));
+                        painterKey.currentState.addImageAsset(
+                          imgPath: img,
+                          offset: center,
+                          drawSize: Size(120, 120),
+                        );
+                      },
+                      child: Image.asset(
+                        img,
+                        width: 80,
+                        height: 80,
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            )
           ],
         ));
   }
@@ -292,7 +313,8 @@ class _HomePageState extends State<HomePage> {
           ..drawSize = Size(0, 0)
           ..offset = center
           ..fontSize = 14
-          ..color = textColor;
+          ..color = textColor
+          ..selected = true;
         painterKey?.currentState?.addText(newDrawText);
       } else {
         drawText
