@@ -70,6 +70,11 @@ class DrawBoradListenable extends ChangeNotifier {
     return null;
   }
 
+  /// 更新绘制实体
+  void update() {
+    notifyListeners();
+  }
+
   /// 设置更新最后一个绘制实体
   void setLast(BaseDraw draw) {
     if (_drawList.isNotEmpty) {

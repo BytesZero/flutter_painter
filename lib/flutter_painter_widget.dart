@@ -141,13 +141,11 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
                 onTapDown: (details) {
                   // 设置按下事件信息
                   _tempTapDownDetails = details;
-                  if (boradMode == BoradMode.Draw) {
-                    _handleOnPanStart(details.localPosition);
-                  }
                 },
                 onTapUp: (details) {
                   /// 这里是解决点击后再绘制会从点击的那个点开始绘制的问题，最终效果是多出一段距离来
                   _tempLine = null;
+                  // _tempTapDownDetails = null;
                   // 处理触点异常导致的无法绘制的问题
                   if (_pointerCount > 1) _pointerCount = 1;
                 },
@@ -159,6 +157,10 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
                       boradMode == BoradMode.Edit) {
                     _handleOnScaleStart(details);
                   } else {
+                    // 处理点击事件到滑动事件
+                    if (_tempTapDownDetails != null) {
+                      _handleOnPanStart(_tempTapDownDetails.localPosition);
+                    }
                     _handleOnPanUpdate(details.localFocalPoint);
                   }
                 },
@@ -172,6 +174,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
                 },
                 onScaleEnd: (details) {
                   _tempLine = null;
+                  _tempTapDownDetails = null;
                 },
                 child: Stack(
                   children: [
@@ -302,13 +305,13 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       double textMoveY = _tmpMoveY + focalMoveY;
       _tempEdit.offset = Offset(textMoveX, textMoveY);
       _tempEdit.scale = scale;
+      drawBoradListenable.update();
     } else {
       _moveX = _tmpMoveX + focalMoveX / _tmpScale;
       _moveY = _tmpMoveY + focalMoveY / _tmpScale;
       _scale = scale;
+      setState(() {});
     }
-
-    setState(() {});
   }
 
   /// 处理滑动开始事件
