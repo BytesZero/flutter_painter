@@ -251,34 +251,35 @@ class _HomePageState extends State<HomePage> {
             ),
             Positioned(
               right: 0,
-              bottom: 100,
-              width: 120,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                padding: EdgeInsets.symmetric(vertical: 4, horizontal: 10),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: imageList.map((img) {
-                    return GestureDetector(
-                      onTap: () {
-                        Size size = MediaQuery.of(context).size;
-                        Offset center = size.center(Offset(0, 0));
-                        painterKey.currentState.addImageAsset(
-                          imgPath: img,
-                          offset: center,
-                          drawSize: Size(120, 120),
-                        );
-                      },
-                      child: Image.asset(
-                        img,
-                        width: 80,
-                        height: 80,
-                      ),
-                    );
-                  }).toList(),
+              bottom: MediaQuery.of(context).size.height / 2 - 90,
+              child: SafeArea(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: imageList.map((img) {
+                      return GestureDetector(
+                        onTap: () {
+                          Size size = MediaQuery.of(context).size;
+                          Offset center = size.center(Offset(0, 0));
+                          painterKey.currentState.addImageAsset(
+                            imgPath: img,
+                            offset: center.translate(-60, -60),
+                            drawSize: Size(120, 120),
+                          );
+                        },
+                        child: Image.asset(
+                          img,
+                          width: 40,
+                          height: 40,
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 ),
               ),
             )

@@ -261,8 +261,9 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
           // 然后赋值设置为选中状态
           _tempEdit = item;
           drawBoradListenable.setSelect(_tempEdit, true);
-          _boradMode = BoradMode.Edit;
         }
+        // 设置为编辑状态
+        _boradMode = BoradMode.Edit;
         break;
       } else {
         // 未命中，不选中
