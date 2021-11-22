@@ -104,9 +104,6 @@ class _HomePageState extends State<HomePage> {
                             return GestureDetector(
                               onTap: () {
                                 selectColor = color;
-                                // if (_tempText != null && _tempText.selected) {
-                                //   _tempText.color = selectColor;
-                                // }
                                 setState(() {});
                                 painterKey?.currentState?.setBrushColor(color);
                               },
@@ -321,8 +318,6 @@ class _HomePageState extends State<HomePage> {
           ..text = text
           ..color = textColor;
       }
-
-      setState(() {});
     }
   }
 
