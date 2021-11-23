@@ -3,7 +3,7 @@ export 'package:flutter/rendering.dart';
 
 // 绘制基类
 abstract class BaseDraw {
-  Offset offset; // 位置
+  Offset offset = Offset.zero; // 位置
   Size drawSize; // 绘制项大小
   Paint paint = Paint(); // 画笔
 
