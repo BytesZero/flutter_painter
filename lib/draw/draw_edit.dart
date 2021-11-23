@@ -6,6 +6,8 @@ mixin DrawEdit {
   bool selected = false; // 是否选中
   double delRadius = 8; // 删除半径
   Rect rect; // 编辑矩阵
+  bool enable = true; // 启用编辑
+
   /// 绘制编辑
   void drawEdit(Canvas canvas, Paint paint) {
     if (selected && rect != null) {

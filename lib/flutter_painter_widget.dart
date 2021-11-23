@@ -23,6 +23,7 @@ class FlutterPainterWidget extends StatefulWidget {
     this.brushWidth,
     this.onTapText,
     this.onPointerCount,
+    this.enableLineEdit = true,
   }) : super(key: key);
   // 背景 Widget
   final Widget background;
@@ -34,6 +35,8 @@ class FlutterPainterWidget extends StatefulWidget {
   final Color brushColor;
   // 画笔粗细
   final double brushWidth;
+  // 启用线的编辑
+  final bool enableLineEdit;
   // 文字编辑点击
   final ValueChanged<DrawText> onTapText;
   // 手指按下数量变化监听
@@ -244,9 +247,10 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
         return;
       }
     }
-
-    /// 只获取文字
-    var editList = drawBoradListenable.drawList.whereType<DrawEdit>();
+    // 仅获取可编辑内容
+    var editList = drawBoradListenable.drawList
+        .whereType<DrawEdit>()
+        .where((drawItem) => !((drawItem is DrawLine) && !drawItem.enable));
     // 遍历查看是否命中事件
     for (var item in editList) {
       Rect textRect = item.rect;
@@ -318,7 +322,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   void _handleOnPanStart(Offset point) {
     _tempLine = DrawLine()
       ..color = _brushColor
-      ..lineWidth = _brushWidth;
+      ..lineWidth = _brushWidth
+      ..enable = widget.enableLineEdit;
     _tempLine.linePath.add(point);
     drawBoradListenable.add(_tempLine);
   }
@@ -348,11 +353,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     drawBoradListenable.add(line);
   }
 
-  /// 更新文字信息
-  void updateTempText(DrawText text) {
-    _tempEdit = text;
-  }
-
   /// 添加文字
   void addText(DrawText text) {
     if (text?.text?.isEmpty ?? true) {
@@ -365,6 +365,12 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       _tempEdit = text;
       _boradMode = BoradMode.Edit;
     }
+  }
+
+  /// 更新文字信息
+  void updateText(DrawText text) {
+    _tempEdit = text;
+    drawBoradListenable.update();
   }
 
   /// 添加图片
