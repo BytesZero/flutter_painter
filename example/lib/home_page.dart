@@ -70,6 +70,7 @@ class _HomePageState extends State<HomePage> {
               key: painterKey,
               // height: 290,
               // width: 430,
+              // enableLineEdit: false,
               background: Center(
                 child: Image.network(
                   imageUrl3,

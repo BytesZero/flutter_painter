@@ -148,19 +148,20 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
                 onTapUp: (details) {
                   /// 这里是解决点击后再绘制会从点击的那个点开始绘制的问题，最终效果是多出一段距离来
                   _tempLine = null;
-                  // _tempTapDownDetails = null;
                   // 处理触点异常导致的无法绘制的问题
                   if (_pointerCount > 1) _pointerCount = 1;
                 },
                 onTap: () {
                   _handleOnTap();
+                  // 清空按下信息，方式错误绘制
+                  _tempTapDownDetails = null;
                 },
                 onScaleStart: (details) {
                   if (boradMode == BoradMode.Zoom ||
                       boradMode == BoradMode.Edit) {
                     _handleOnScaleStart(details);
                   } else {
-                    // 处理点击事件到滑动事件
+                    // 处理按下事件到滑动事件的过渡阶段的距离
                     if (_tempTapDownDetails != null) {
                       _handleOnPanStart(_tempTapDownDetails.localPosition);
                     }
