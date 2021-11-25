@@ -306,8 +306,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
     /// 有选中文字处理选中文字
     if (_tempEdit != null && _tempEdit.selected) {
-      double textMoveX = _tmpMoveX + focalMoveX;
-      double textMoveY = _tmpMoveY + focalMoveY;
+      double textMoveX = _tmpMoveX + focalMoveX / _scale;
+      double textMoveY = _tmpMoveY + focalMoveY / _scale;
       _tempEdit.offset = Offset(textMoveX, textMoveY);
       _tempEdit.scale = scale;
       drawBoradListenable.update();
