@@ -16,7 +16,7 @@ class DrawText extends BaseDraw with DrawEdit {
     canvas.save();
 
     // 设置样式
-    TextStyle style = TextStyle(fontSize: fontSize * scale, color: color);
+    TextStyle style = TextStyle(fontSize: fontSize, color: color);
     // 设置文本
     TextSpan textSpan = TextSpan(
       text: text,
@@ -27,6 +27,7 @@ class DrawText extends BaseDraw with DrawEdit {
       text: textSpan,
       textAlign: TextAlign.left,
       textDirection: TextDirection.ltr,
+      textScaleFactor: scale,
     );
     // 布局文字
     tp.layout(minWidth: drawSize.width, maxWidth: size.width - offset.dx - 4);
