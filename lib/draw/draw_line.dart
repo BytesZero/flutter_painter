@@ -10,7 +10,7 @@ class DrawLine extends BaseDraw with DrawEdit {
 
   @override
   void draw(Canvas canvas, Size size) {
-    if (linePath.isEmpty ?? true) {
+    if (linePath.isEmpty) {
       return;
     }
     // 设置画笔

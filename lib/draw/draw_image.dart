@@ -4,7 +4,7 @@ import 'draw_edit.dart';
 
 /// 绘制图片
 class DrawImage extends BaseDraw with DrawEdit {
-  Image image; // 图片
+  Image? image; // 图片
 
   @override
   void draw(Canvas canvas, Size size) {
@@ -14,22 +14,22 @@ class DrawImage extends BaseDraw with DrawEdit {
         rect = Rect.fromLTWH(
           offset.dx,
           offset.dy,
-          drawSize.width * this.scale,
-          drawSize.height * this.scale,
+          drawSize!.width * this.scale,
+          drawSize!.height * this.scale,
         );
       } else {
         // 计算绘制矩阵
         rect = Rect.fromLTWH(
           offset.dx,
           offset.dy,
-          image.width.toDouble() * this.scale,
-          image.height.toDouble() * this.scale,
+          image!.width.toDouble() * this.scale,
+          image!.height.toDouble() * this.scale,
         );
       }
       // 指定大小绘制
       canvas.drawImageRect(
-        image,
-        Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
+        image!,
+        Rect.fromLTWH(0, 0, image!.width.toDouble(), image!.height.toDouble()),
         rect,
         paint,
       );

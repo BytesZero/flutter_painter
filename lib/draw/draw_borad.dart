@@ -31,7 +31,7 @@ enum BoradMode {
 
 /// 画板监听器
 class DrawBoradListenable extends ChangeNotifier {
-  List<BaseDraw> _drawList = [];
+  List<BaseDraw/*!*//*!*//*!*/> _drawList = [];
   // 获取绘制实体列表
   List<BaseDraw> get drawList => _drawList;
 
@@ -61,7 +61,7 @@ class DrawBoradListenable extends ChangeNotifier {
   }
 
   /// 删除最后一个绘制实体
-  BaseDraw removeLast() {
+  BaseDraw? removeLast() {
     if (_drawList.isNotEmpty) {
       BaseDraw lastDraw = _drawList.removeLast();
       notifyListeners();
@@ -84,7 +84,7 @@ class DrawBoradListenable extends ChangeNotifier {
   }
 
   /// 设置编辑实体选中
-  void setSelect(DrawEdit draw, [bool selected = true]) {
+  void setSelect(DrawEdit? draw, [bool selected = true]) {
     if (draw != null) {
       draw.selected = selected;
       notifyListeners();
