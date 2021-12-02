@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 
 /// 文字编辑页面
 class EditTextPage extends StatefulWidget {
-  EditTextPage({Key key, this.text = '', this.color = Colors.red})
+  EditTextPage({Key? key, this.text = '', this.color = Colors.red})
       : super(key: key);
   // 文字
-  final String text;
+  final String? text;
   // 颜色
-  final Color color;
+  final Color? color;
 
   @override
   _EditTextPageState createState() => _EditTextPageState();
@@ -28,7 +28,7 @@ class _EditTextPageState extends State<EditTextPage> {
   //选择颜色
   Color selectColor = Colors.red;
 
-  TextEditingController _editingController;
+  late TextEditingController _editingController;
 
   @override
   void initState() {
@@ -129,7 +129,7 @@ class _EditTextPageState extends State<EditTextPage> {
 
   void popPage(BuildContext context) {
     Navigator.pop(context, {
-      'text': _editingController?.text ?? '',
+      'text': _editingController.text,
       'color': selectColor.value,
     });
   }
