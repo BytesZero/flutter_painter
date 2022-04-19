@@ -1,12 +1,9 @@
-import 'package:flutter_painter/draw/draw_edit.dart';
-
-import 'base_draw.dart';
+import 'base_line.dart';
+import 'draw_edit.dart';
 
 /// 绘制线
-class DrawLine extends BaseDraw with DrawEdit {
+class DrawLine extends BaseLine with DrawEdit {
   Color color = Color(0xFFFFFFFF); // 颜色
-  double lineWidth = 4; //线宽
-  List<Offset> linePath = []; // 绘制线的点的集合
 
   @override
   void draw(Canvas canvas, Size size) {

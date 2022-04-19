@@ -1,15 +1,18 @@
 import 'dart:math';
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_painter/draw/draw_edit.dart';
 import 'package:flutter_painter/draw/draw_image.dart';
-import 'dart:ui' as ui;
-import 'draw/draw_borad.dart';
-import 'draw/draw_line.dart';
+
 import 'draw/base_draw.dart';
+import 'draw/base_line.dart';
+import 'draw/draw_borad.dart';
+import 'draw/draw_eraser.dart';
+import 'draw/draw_line.dart';
 import 'draw/draw_text.dart';
 
 /// Flutter Painter
@@ -83,15 +86,19 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   // 画板模式
   BoradMode _boradMode = BoradMode.Draw;
   BoradMode get boradMode => _boradMode;
+  // 是否是清除模式
+  bool _isEraseMode = false;
   // 画笔颜色
   Color _brushColor = Colors.red;
   // 画笔粗细
   double _brushWidth = 2;
+  // 擦除画笔粗细
+  double _eraseWidth = 8;
 
   // 绘制集合
   DrawBoradListenable drawBoradListenable = DrawBoradListenable();
   // 临时线
-  DrawLine? _tempLine;
+  BaseLine? _tempLine;
   // 临时编辑内容，标记选中赋值
   var _tempEdit;
   // 临时按下事件记录，防止事件错乱
@@ -321,10 +328,15 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 处理滑动开始事件
   void _handleOnPanStart(Offset point) {
-    _tempLine = DrawLine()
-      ..color = _brushColor
-      ..lineWidth = _brushWidth
-      ..enable = widget.enableLineEdit;
+    /// 擦除模式（橡皮擦）
+    if (_isEraseMode) {
+      _tempLine = DrawEraser()..lineWidth = _eraseWidth;
+    } else {
+      _tempLine = DrawLine()
+        ..color = _brushColor
+        ..lineWidth = _brushWidth
+        ..enable = widget.enableLineEdit;
+    }
     _tempLine!.linePath.add(point);
     drawBoradListenable.add(_tempLine!);
   }
@@ -342,11 +354,13 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   /// 设置画笔颜色
   void setBrushColor(Color color) {
     _brushColor = color;
+    setEraseMode(false);
   }
 
   /// 设置画笔宽度
   void setBrushWidth(double width) {
     _brushWidth = width;
+    setEraseMode(false);
   }
 
   /// 添加线
@@ -445,6 +459,17 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     _pointerCount = 0;
   }
 
+  /// 设置擦除模式
+  /// [isEraseMode] 是否为擦除模式
+  void setEraseMode(bool isEraseMode) {
+    _isEraseMode = isEraseMode;
+  }
+
+  /// 设置擦除宽度
+  void setEraseWidth(double width) {
+    _eraseWidth = width;
+  }
+
   /// 清空
   void clearDraw() {
     drawBoradListenable.clear();
@@ -461,6 +486,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     drawBoradListenable.setSelect(_tempEdit, false);
     _tempEdit = null;
     _boradMode = BoradMode.Draw;
+    _isEraseMode = false;
+    _eraseWidth = 8;
     _pointerCount = 0;
     setState(() {});
   }

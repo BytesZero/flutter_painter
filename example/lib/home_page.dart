@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_painter/flutter_painter.dart';
+
 import 'edit_text_page.dart';
 
 /// 首页
@@ -68,9 +69,6 @@ class _HomePageState extends State<HomePage> {
           children: [
             FlutterPainterWidget(
               key: painterKey,
-              // height: 290,
-              // width: 430,
-              // enableLineEdit: false,
               background: Center(
                 child: Image.network(
                   imageUrl3,
@@ -215,6 +213,16 @@ class _HomePageState extends State<HomePage> {
                           heroTag: 'undo',
                           onPressed: () {
                             painterKey.currentState?.undo();
+                          },
+                        ),
+                        SizedBox(width: 2),
+                        FloatingActionButton(
+                          child: Icon(Icons.ac_unit_rounded),
+                          tooltip: '橡皮擦',
+                          heroTag: 'erase',
+                          onPressed: () {
+                            painterKey.currentState?.setEraseMode(true);
+                            painterKey.currentState?.setEraseWidth(20);
                           },
                         ),
                         SizedBox(width: 2),

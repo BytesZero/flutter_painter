@@ -1,5 +1,6 @@
 import 'dart:ui';
-import 'package:flutter_painter/draw/base_draw.dart';
+
+import 'base_draw.dart';
 import 'draw_edit.dart';
 
 /// 绘制图片

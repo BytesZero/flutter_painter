@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
+
 import 'base_draw.dart';
 import 'draw_edit.dart';
 
@@ -10,9 +11,11 @@ class DrawBorad extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    canvas.saveLayer(Rect.largest, Paint());
     for (var draw in drawBoradListenable.drawList) {
       draw.draw(canvas, size);
     }
+    canvas.restore();
   }
 
   @override
@@ -31,7 +34,7 @@ enum BoradMode {
 
 /// 画板监听器
 class DrawBoradListenable extends ChangeNotifier {
-  List<BaseDraw/*!*//*!*//*!*/> _drawList = [];
+  List<BaseDraw> _drawList = [];
   // 获取绘制实体列表
   List<BaseDraw> get drawList => _drawList;
 
