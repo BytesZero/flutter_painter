@@ -86,12 +86,13 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   // 画板模式
   BoradMode _boradMode = BoradMode.Draw;
   BoradMode get boradMode => _boradMode;
-  // 是否是清除模式
-  bool _isEraseMode = false;
+
   // 画笔颜色
   Color _brushColor = Colors.red;
   // 画笔粗细
   double _brushWidth = 2;
+  // 是否是清除模式
+  bool _isEraseMode = false;
   // 擦除画笔粗细
   double _eraseWidth = 8;
 
@@ -151,6 +152,12 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
                 onTapDown: (details) {
                   // 设置按下事件信息
                   _tempTapDownDetails = details;
+                  // 如果橡皮擦，则按下就开始擦除
+                  if (_isEraseMode) {
+                    _handleOnPanUpdate(details.localPosition);
+                    _handleOnPanUpdate(
+                        details.localPosition.translate(_eraseWidth, 0));
+                  }
                 },
                 onTapUp: (details) {
                   /// 这里是解决点击后再绘制会从点击的那个点开始绘制的问题，最终效果是多出一段距离来
@@ -408,6 +415,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       {required String imgPath,
       required Offset offset,
       Size? drawSize,
+      double scale = 1.0,
       bool selected = true}) async {
     // 获取图片数据
     ByteData data = await rootBundle.load(imgPath);
@@ -421,7 +429,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
         ..image = imgData
         ..offset = offset
         ..selected = selected
-        ..drawSize = drawSize,
+        ..drawSize = drawSize
+        ..scale = scale,
     );
   }
 

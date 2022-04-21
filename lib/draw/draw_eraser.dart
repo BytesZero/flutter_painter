@@ -27,14 +27,14 @@ class DrawEraser extends BaseLine {
     // 绘制线
     canvas.drawPath(path, paint);
     // 绘制橡皮擦(测试用)
-    Offset pe = linePath.last;
-    canvas.drawCircle(
-      Offset(pe.dx, pe.dy),
-      lineWidth / 2,
-      paint
-        ..blendMode = BlendMode.src
-        ..color = Color(0xFF091BE1)
-        ..style = PaintingStyle.fill,
-    );
+    // Offset pe = linePath.last;
+    // canvas.drawCircle(
+    //   Offset(pe.dx, pe.dy),
+    //   lineWidth / 2,
+    //   paint
+    //     ..blendMode = BlendMode.src
+    //     ..color = Color(0xFF091BE1)
+    //     ..style = PaintingStyle.fill,
+    // );
   }
 }
