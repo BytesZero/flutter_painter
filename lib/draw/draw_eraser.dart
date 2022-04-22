@@ -10,7 +10,7 @@ class DrawEraser extends BaseLine {
       ..isAntiAlias = true
       // ..color = Color(0xFF7B7B7B)// 调试使用
       ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.butt
+      ..strokeCap = StrokeCap.round
       ..strokeWidth = lineWidth;
     // 绘制橡皮擦线
     // 第一个点

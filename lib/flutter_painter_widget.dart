@@ -61,8 +61,10 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   double get bgScale => _bgScale;
   double? _tmpScale = 1.0;
   double _moveX = 0.0;
+  double get moveX => _moveX;
   double? _tmpMoveX = 0.0;
   double _moveY = 0.0;
+  double get moveY => _moveY;
   double? _tmpMoveY = 0.0;
   // double _rotation = 0.0;
   double _bgRotation = 0.0;
@@ -177,7 +179,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
                   } else {
                     // 处理按下事件到滑动事件的过渡阶段的距离
                     if (_tempTapDownDetails != null) {
-                      _handleOnPanStart(_tempTapDownDetails!.localPosition);
+                      _handleOnPanUpdate(_tempTapDownDetails!.localPosition);
                     }
                     _handleOnPanUpdate(details.localFocalPoint);
                   }
