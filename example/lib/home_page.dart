@@ -4,11 +4,12 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_painter/flutter_painter.dart';
+
 import 'edit_text_page.dart';
 
 /// 首页
 class HomePage extends StatefulWidget {
-  HomePage({Key key}) : super(key: key);
+  HomePage({Key? key}) : super(key: key);
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -68,9 +69,6 @@ class _HomePageState extends State<HomePage> {
           children: [
             FlutterPainterWidget(
               key: painterKey,
-              // height: 290,
-              // width: 430,
-              // enableLineEdit: false,
               background: Center(
                 child: Image.network(
                   imageUrl3,
@@ -106,7 +104,7 @@ class _HomePageState extends State<HomePage> {
                               onTap: () {
                                 selectColor = color;
                                 setState(() {});
-                                painterKey?.currentState?.setBrushColor(color);
+                                painterKey.currentState?.setBrushColor(color);
                               },
                               child: Container(
                                 height: 24,
@@ -142,7 +140,7 @@ class _HomePageState extends State<HomePage> {
                             onTap: () {
                               brushWidth = width;
                               setState(() {});
-                              painterKey?.currentState?.setBrushWidth(width);
+                              painterKey.currentState?.setBrushWidth(width);
                             },
                             child: Container(
                                 height: 36,
@@ -202,9 +200,9 @@ class _HomePageState extends State<HomePage> {
                           tooltip: '旋转',
                           heroTag: 'rotate',
                           onPressed: () {
-                            painterKey?.currentState?.clearDraw();
+                            painterKey.currentState?.clearDraw();
                             rotation = rotation - pi / 2;
-                            painterKey?.currentState
+                            painterKey.currentState
                                 ?.setBackgroundRotation(rotation);
                           },
                         ),
@@ -214,7 +212,17 @@ class _HomePageState extends State<HomePage> {
                           tooltip: '回退',
                           heroTag: 'undo',
                           onPressed: () {
-                            painterKey?.currentState?.undo();
+                            painterKey.currentState?.undo();
+                          },
+                        ),
+                        SizedBox(width: 2),
+                        FloatingActionButton(
+                          child: Icon(Icons.ac_unit_rounded),
+                          tooltip: '橡皮擦',
+                          heroTag: 'erase',
+                          onPressed: () {
+                            painterKey.currentState?.setEraseMode(true);
+                            painterKey.currentState?.setEraseWidth(20);
                           },
                         ),
                         SizedBox(width: 2),
@@ -225,7 +233,7 @@ class _HomePageState extends State<HomePage> {
                           tooltip: '清空',
                           heroTag: 'clear',
                           onPressed: () {
-                            painterKey?.currentState?.clearDraw();
+                            painterKey.currentState?.clearDraw();
                           },
                         ),
                         SizedBox(width: 2),
@@ -264,7 +272,7 @@ class _HomePageState extends State<HomePage> {
                         onTap: () {
                           Size size = MediaQuery.of(context).size;
                           Offset center = size.center(Offset(0, 0));
-                          painterKey.currentState.addImageAsset(
+                          painterKey.currentState!.addImageAsset(
                             imgPath: img,
                             offset: center.translate(-60, -60),
                             drawSize: Size(120, 120),
@@ -286,7 +294,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// 现实文字输入框
-  Future<void> showEditTextDialog({DrawText drawText}) async {
+  Future<void> showEditTextDialog({DrawText? drawText}) async {
     //弹出文字输入框
     var result = await showDialog(
       context: context,
@@ -299,7 +307,7 @@ class _HomePageState extends State<HomePage> {
     );
     // 获取文字结果
     if (result != null) {
-      String text = result['text'];
+      String? text = result['text'];
       int colorValue = result['color'];
       debugPrint('showEditTextPage text:$text colorValue:$colorValue');
       Color textColor = Color(colorValue);
@@ -313,7 +321,7 @@ class _HomePageState extends State<HomePage> {
           ..fontSize = 14
           ..color = textColor
           ..selected = true;
-        painterKey?.currentState?.addText(newDrawText);
+        painterKey.currentState?.addText(newDrawText);
       } else {
         drawText
           ..text = text
@@ -324,7 +332,7 @@ class _HomePageState extends State<HomePage> {
 
   // 保存为图片
   Future<void> saveToImage() async {
-    Uint8List pngBytes = await painterKey?.currentState?.getImage();
+    Uint8List pngBytes = (await painterKey.currentState?.getImage())!;
 
     /// 显示图片
     showDialog(

@@ -5,12 +5,12 @@ mixin DrawEdit {
   double scale = 1.0; // 缩放
   bool selected = false; // 是否选中
   double delRadius = 8; // 删除半径
-  Rect rect; // 编辑矩阵
+  late Rect rect; // 编辑矩阵
   bool enable = true; // 启用编辑
 
   /// 绘制编辑
   void drawEdit(Canvas canvas, Paint paint) {
-    if (selected && rect != null) {
+    if (selected) {
       // 设置边框画笔
       paint
         ..color = Color(0xFFDDDDDD)
