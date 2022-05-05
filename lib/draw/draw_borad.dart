@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
+
 import 'base_draw.dart';
 import 'draw_edit.dart';
 
@@ -10,9 +11,11 @@ class DrawBorad extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    canvas.saveLayer(Rect.largest, Paint());
     for (var draw in drawBoradListenable.drawList) {
       draw.draw(canvas, size);
     }
+    canvas.restore();
   }
 
   @override
@@ -61,7 +64,7 @@ class DrawBoradListenable extends ChangeNotifier {
   }
 
   /// 删除最后一个绘制实体
-  BaseDraw removeLast() {
+  BaseDraw? removeLast() {
     if (_drawList.isNotEmpty) {
       BaseDraw lastDraw = _drawList.removeLast();
       notifyListeners();
@@ -84,7 +87,7 @@ class DrawBoradListenable extends ChangeNotifier {
   }
 
   /// 设置编辑实体选中
-  void setSelect(DrawEdit draw, [bool selected = true]) {
+  void setSelect(DrawEdit? draw, [bool selected = true]) {
     if (draw != null) {
       draw.selected = selected;
       notifyListeners();

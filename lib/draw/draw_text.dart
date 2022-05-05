@@ -3,10 +3,10 @@ import 'draw_edit.dart';
 
 /// 绘制文字
 class DrawText extends BaseDraw with DrawEdit {
-  String text; // 文字
+  String? text; // 文字
   Color color = Color(0xFFFFFFFF); // 颜色
   double fontSize = 14; // 文字大小
-  TextPainter tp; // 文字画笔
+  late TextPainter tp; // 文字画笔
 
   @override
   void draw(Canvas canvas, Size size) {
@@ -30,7 +30,7 @@ class DrawText extends BaseDraw with DrawEdit {
       textScaleFactor: scale,
     );
     // 布局文字
-    tp.layout(minWidth: drawSize.width, maxWidth: size.width - offset.dx - 4);
+    tp.layout(minWidth: drawSize!.width, maxWidth: size.width - offset.dx - 4);
     // 计算文字矩阵
     this.rect = Rect.fromLTWH(
       offset.dx - 4,

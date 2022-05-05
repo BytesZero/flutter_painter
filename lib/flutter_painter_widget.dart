@@ -1,22 +1,25 @@
 import 'dart:math';
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_painter/draw/draw_edit.dart';
 import 'package:flutter_painter/draw/draw_image.dart';
-import 'dart:ui' as ui;
-import 'draw/draw_borad.dart';
-import 'draw/draw_line.dart';
+
 import 'draw/base_draw.dart';
+import 'draw/base_line.dart';
+import 'draw/draw_borad.dart';
+import 'draw/draw_eraser.dart';
+import 'draw/draw_line.dart';
 import 'draw/draw_text.dart';
 
 /// Flutter Painter
 class FlutterPainterWidget extends StatefulWidget {
   FlutterPainterWidget({
-    Key key,
-    @required this.background,
+    Key? key,
+    required this.background,
     this.width,
     this.height,
     this.brushColor,
@@ -28,19 +31,19 @@ class FlutterPainterWidget extends StatefulWidget {
   // 背景 Widget
   final Widget background;
   // 宽度
-  final double width;
+  final double? width;
   // 高度
-  final double height;
+  final double? height;
   // 画笔颜色
-  final Color brushColor;
+  final Color? brushColor;
   // 画笔粗细
-  final double brushWidth;
+  final double? brushWidth;
   // 启用线的编辑
   final bool enableLineEdit;
   // 文字编辑点击
-  final ValueChanged<DrawText> onTapText;
+  final ValueChanged<DrawText>? onTapText;
   // 手指按下数量变化监听
-  final ValueChanged<int> onPointerCount;
+  final ValueChanged<int>? onPointerCount;
 
   @override
   FlutterPainterWidgetState createState() => FlutterPainterWidgetState();
@@ -56,11 +59,13 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   double get scale => _scale;
   double _bgScale = 1.0;
   double get bgScale => _bgScale;
-  double _tmpScale = 1.0;
+  double? _tmpScale = 1.0;
   double _moveX = 0.0;
-  double _tmpMoveX = 0.0;
+  double get moveX => _moveX;
+  double? _tmpMoveX = 0.0;
   double _moveY = 0.0;
-  double _tmpMoveY = 0.0;
+  double get moveY => _moveY;
+  double? _tmpMoveY = 0.0;
   // double _rotation = 0.0;
   double _bgRotation = 0.0;
   // 获取旋转角度
@@ -71,11 +76,11 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   bool get is90 => (_bgRotation ~/ (pi / 2)).isOdd;
 
   /// 矩阵信息
-  Matrix4 _matrix4;
-  Matrix4 _bgMatrix4;
+  late Matrix4 _matrix4;
+  late Matrix4 _bgMatrix4;
 
   /// 图片矩阵
-  Rect imgRect;
+  Rect? imgRect;
 
   // 按下手指个数
   int _pointerCount = 0;
@@ -83,28 +88,33 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   // 画板模式
   BoradMode _boradMode = BoradMode.Draw;
   BoradMode get boradMode => _boradMode;
+
   // 画笔颜色
   Color _brushColor = Colors.red;
   // 画笔粗细
   double _brushWidth = 2;
+  // 是否是清除模式
+  bool _isEraseMode = false;
+  // 擦除画笔粗细
+  double _eraseWidth = 8;
 
   // 绘制集合
   DrawBoradListenable drawBoradListenable = DrawBoradListenable();
   // 临时线
-  DrawLine _tempLine;
+  BaseLine? _tempLine;
   // 临时编辑内容，标记选中赋值
   var _tempEdit;
   // 临时按下事件记录，防止事件错乱
-  TapDownDetails _tempTapDownDetails;
+  TapDownDetails? _tempTapDownDetails;
 
   @override
   void initState() {
     /// 设置默认
     if (widget.brushColor != null) {
-      _brushColor = widget.brushColor;
+      _brushColor = widget.brushColor!;
     }
     if (widget.brushWidth != null) {
-      _brushWidth = widget.brushWidth;
+      _brushWidth = widget.brushWidth!;
     }
     super.initState();
   }
@@ -144,6 +154,12 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
                 onTapDown: (details) {
                   // 设置按下事件信息
                   _tempTapDownDetails = details;
+                  // 如果橡皮擦，则按下就开始擦除
+                  if (_isEraseMode) {
+                    _handleOnPanUpdate(details.localPosition);
+                    _handleOnPanUpdate(
+                        details.localPosition.translate(_eraseWidth, 0));
+                  }
                 },
                 onTapUp: (details) {
                   /// 这里是解决点击后再绘制会从点击的那个点开始绘制的问题，最终效果是多出一段距离来
@@ -163,7 +179,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
                   } else {
                     // 处理按下事件到滑动事件的过渡阶段的距离
                     if (_tempTapDownDetails != null) {
-                      _handleOnPanStart(_tempTapDownDetails.localPosition);
+                      _handleOnPanUpdate(_tempTapDownDetails!.localPosition);
                     }
                     _handleOnPanUpdate(details.localFocalPoint);
                   }
@@ -225,13 +241,13 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     }
     // 返回按下手指数
     if (widget.onPointerCount != null) {
-      widget.onPointerCount(_pointerCount);
+      widget.onPointerCount!(_pointerCount);
     }
   }
 
   /// 处理点击事件
   void _handleOnTap() {
-    Offset lp = _tempTapDownDetails.localPosition;
+    Offset lp = _tempTapDownDetails!.localPosition;
     if (_tempEdit != null) {
       // 计算删除区域
       double delRadius = _tempEdit.delRadius;
@@ -261,7 +277,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
         if (item.selected) {
           // 二次命中触发文字编辑
           if ((item is DrawText) && (widget.onTapText != null)) {
-            widget.onTapText(item);
+            widget.onTapText!(item);
           }
         } else {
           // 先设置为不选中状态
@@ -302,18 +318,18 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     /// 计算运动距离
     double focalMoveX = (details.focalPoint.dx - _tmpFocal.dx);
     double focalMoveY = (details.focalPoint.dy - _tmpFocal.dy);
-    double scale = _tmpScale * details.scale;
+    double scale = _tmpScale! * details.scale;
 
     /// 有选中文字处理选中文字
     if (_tempEdit != null && _tempEdit.selected) {
-      double textMoveX = _tmpMoveX + focalMoveX / _scale;
-      double textMoveY = _tmpMoveY + focalMoveY / _scale;
+      double textMoveX = _tmpMoveX! + focalMoveX / _scale;
+      double textMoveY = _tmpMoveY! + focalMoveY / _scale;
       _tempEdit.offset = Offset(textMoveX, textMoveY);
       _tempEdit.scale = scale;
       drawBoradListenable.update();
     } else {
-      _moveX = _tmpMoveX + focalMoveX / _tmpScale;
-      _moveY = _tmpMoveY + focalMoveY / _tmpScale;
+      _moveX = _tmpMoveX! + focalMoveX / _tmpScale!;
+      _moveY = _tmpMoveY! + focalMoveY / _tmpScale!;
       _scale = scale;
       setState(() {});
     }
@@ -321,12 +337,17 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 处理滑动开始事件
   void _handleOnPanStart(Offset point) {
-    _tempLine = DrawLine()
-      ..color = _brushColor
-      ..lineWidth = _brushWidth
-      ..enable = widget.enableLineEdit;
-    _tempLine.linePath.add(point);
-    drawBoradListenable.add(_tempLine);
+    /// 擦除模式（橡皮擦）
+    if (_isEraseMode) {
+      _tempLine = DrawEraser()..lineWidth = _eraseWidth;
+    } else {
+      _tempLine = DrawLine()
+        ..color = _brushColor
+        ..lineWidth = _brushWidth
+        ..enable = widget.enableLineEdit;
+    }
+    _tempLine!.linePath.add(point);
+    drawBoradListenable.add(_tempLine!);
   }
 
   /// 处理滑动更新事件
@@ -334,19 +355,21 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     if (_tempLine == null) {
       _handleOnPanStart(point);
     } else {
-      _tempLine.linePath.add(point);
-      drawBoradListenable.setLast(_tempLine);
+      _tempLine!.linePath.add(point);
+      drawBoradListenable.setLast(_tempLine!);
     }
   }
 
   /// 设置画笔颜色
   void setBrushColor(Color color) {
     _brushColor = color;
+    setEraseMode(false);
   }
 
   /// 设置画笔宽度
   void setBrushWidth(double width) {
     _brushWidth = width;
+    setEraseMode(false);
   }
 
   /// 添加线
@@ -356,7 +379,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 添加文字
   void addText(DrawText text) {
-    if (text?.text?.isEmpty ?? true) {
+    if (text.text?.isEmpty ?? true) {
       throw Exception('添加的文字不能为空');
     }
     drawBoradListenable.add(text);
@@ -391,9 +414,10 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   /// [offset] 图片位置偏移量
   /// [drawSize] 绘制图片大小
   void addImageAsset(
-      {String imgPath,
-      Offset offset,
-      Size drawSize,
+      {required String imgPath,
+      required Offset offset,
+      Size? drawSize,
+      double scale = 1.0,
       bool selected = true}) async {
     // 获取图片数据
     ByteData data = await rootBundle.load(imgPath);
@@ -407,7 +431,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
         ..image = imgData
         ..offset = offset
         ..selected = selected
-        ..drawSize = drawSize,
+        ..drawSize = drawSize
+        ..scale = scale,
     );
   }
 
@@ -445,6 +470,17 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     _pointerCount = 0;
   }
 
+  /// 设置擦除模式
+  /// [isEraseMode] 是否为擦除模式
+  void setEraseMode(bool isEraseMode) {
+    _isEraseMode = isEraseMode;
+  }
+
+  /// 设置擦除宽度
+  void setEraseWidth(double width) {
+    _eraseWidth = width;
+  }
+
   /// 清空
   void clearDraw() {
     drawBoradListenable.clear();
@@ -461,6 +497,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     drawBoradListenable.setSelect(_tempEdit, false);
     _tempEdit = null;
     _boradMode = BoradMode.Draw;
+    _isEraseMode = false;
+    _eraseWidth = 8;
     _pointerCount = 0;
     setState(() {});
   }
@@ -478,10 +516,11 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     await Future.delayed(Duration(milliseconds: 300));
 
     /// 开始保存图片
-    RenderRepaintBoundary boundary =
-        _drawToImageKey.currentContext.findRenderObject();
+    RenderRepaintBoundary boundary = _drawToImageKey.currentContext!
+        .findRenderObject() as RenderRepaintBoundary;
     ui.Image image = await boundary.toImage(pixelRatio: pixelRatio);
-    ByteData byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    ByteData byteData = await (image.toByteData(format: ui.ImageByteFormat.png)
+        as Future<ByteData>);
     Uint8List pngBytes = byteData.buffer.asUint8List();
     return pngBytes;
   }
