@@ -142,12 +142,13 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
               onPointerDown: (event) {
                 // 处理触点异常的问题
                 if (_pointerCount < 0) _pointerCount = 0;
-                _pointerCount++;
+                _pointerCount += 1;
                 _switchBoradMode();
               },
               onPointerUp: (event) {
                 // 处理触点异常的问题
-                if (_pointerCount > 0) _pointerCount--;
+                if (_pointerCount > 0) _pointerCount -= 1;
+                _switchBoradMode();
               },
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
@@ -164,8 +165,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
                 onTapUp: (details) {
                   /// 这里是解决点击后再绘制会从点击的那个点开始绘制的问题，最终效果是多出一段距离来
                   _tempLine = null;
-                  // 处理触点异常导致的无法绘制的问题
-                  if (_pointerCount > 1) _pointerCount = 1;
                 },
                 onTap: () {
                   _handleOnTap();
