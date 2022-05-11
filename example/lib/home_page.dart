@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'dart:typed_data';
+import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -270,8 +271,7 @@ class _HomePageState extends State<HomePage> {
                     children: imageList.map((img) {
                       return GestureDetector(
                         onTap: () {
-                          Size size = MediaQuery.of(context).size;
-                          Offset center = size.center(Offset(0, 0));
+                          Offset center = getCurrentCenterOffset();
                           painterKey.currentState!.addImageAsset(
                             imgPath: img,
                             offset: center.translate(-60, -60),
@@ -310,13 +310,20 @@ class _HomePageState extends State<HomePage> {
       String? text = result['text'];
       int colorValue = result['color'];
       debugPrint('showEditTextPage text:$text colorValue:$colorValue');
+      if (text == null) {
+        print('text is null');
+        return;
+      }
+      // 这里加个演示，防止获取到的布局大小是键盘弹起后的大小，高度会错误，导致中心点不对
+      await Future.delayed(Duration(milliseconds: 600));
       Color textColor = Color(colorValue);
       if (drawText == null) {
-        Size size = MediaQuery.of(context).size;
-        Offset center = size.center(Offset(0, 0));
+        Offset center = getCurrentCenterOffset();
+        center = center.translate(-14 * (text.length.clamp(1, 30)) / 4, -20);
+        print('center:$center');
         DrawText newDrawText = DrawText()
-          ..text = text ?? ''
-          ..drawSize = Size(0, 0)
+          ..text = text
+          ..drawSize = Size.zero
           ..offset = center
           ..fontSize = 14
           ..color = textColor
@@ -352,5 +359,15 @@ class _HomePageState extends State<HomePage> {
         );
       },
     );
+  }
+
+  /// 获取当前中心位置
+  Offset getCurrentCenterOffset() {
+    Size? broadSize = painterKey.currentContext?.size ??
+        MediaQueryData.fromWindow(window).size;
+    double moveX = painterKey.currentState?.moveX ?? 0;
+    double moveY = painterKey.currentState?.moveY ?? 0;
+    print('broadSize:$broadSize moveX:$moveX moveY:$moveY');
+    return broadSize.center(Offset.zero).translate(-moveX, -moveY);
   }
 }
