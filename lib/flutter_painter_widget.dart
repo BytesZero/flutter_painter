@@ -140,21 +140,14 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
             alignment: FractionalOffset.center,
             child: Listener(
               onPointerDown: (event) {
-                // 处理触点异常的问题
-                if (_pointerCount < 0) _pointerCount = 0;
-                _pointerCount += 1;
-                _switchBoradMode();
+                _onPointerDown();
               },
               onPointerUp: (event) {
-                // 处理触点异常的问题
-                if (_pointerCount > 0) _pointerCount -= 1;
-                _switchBoradMode();
+                _onPointerUp();
               },
               onPointerCancel: (event) {
                 // 这个回调彻底解决手指数异常的问题
-                // 处理触点异常的问题
-                if (_pointerCount > 0) _pointerCount -= 1;
-                _switchBoradMode();
+                _onPointerUp();
               },
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
@@ -233,6 +226,21 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       _tempEdit = null;
     }
     setState(() {});
+  }
+
+  /// 抬起事件
+  void _onPointerDown() {
+    if (_pointerCount < 0) _pointerCount = 0;
+    _pointerCount += 1;
+    _switchBoradMode();
+  }
+
+  /// 抬起、取消事件
+  void _onPointerUp() {
+    if (_pointerCount > 0) _pointerCount -= 1;
+    if (_pointerCount < 1) {
+      _switchBoradMode();
+    }
   }
 
   /// 切换画板模式
