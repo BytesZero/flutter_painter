@@ -150,6 +150,12 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
                 if (_pointerCount > 0) _pointerCount -= 1;
                 _switchBoradMode();
               },
+              onPointerCancel: (event) {
+                // 这个回调彻底解决手指数异常的问题
+                // 处理触点异常的问题
+                if (_pointerCount > 0) _pointerCount -= 1;
+                _switchBoradMode();
+              },
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTapDown: (details) {
