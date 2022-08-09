@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_painter/draw/draw_edit.dart';
@@ -149,6 +150,18 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
                 // 这个回调彻底解决手指数异常的问题
                 _onPointerUp();
               },
+              onPointerHover: (event) {
+                print('FlutterPainterWidget onPointerHover');
+              },
+              onPointerMove: (event) {
+                print('FlutterPainterWidget onPointerMove');
+              },
+              onPointerSignal: (event) {
+                print('FlutterPainterWidget onPointerSignal');
+                if (event is PointerScrollEvent) {
+                  _onPointerScroll(event);
+                }
+              },
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTapDown: (details) {
@@ -243,6 +256,29 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     }
   }
 
+  /// 鼠标滚轮事件
+  void _onPointerScroll(PointerScrollEvent event) {
+    // if (boradMode == BoradMode.Zoom) {
+    //   // _handleOnScaleUpdate(event);
+    // }
+    print('FlutterPainterWidget _onPointerScroll event: ${event.toString()}');
+    Offset center = MediaQuery.of(context).size.center(Offset.zero);
+    double newScale = scale + event.scrollDelta.dy / center.dy;
+    double newMoveX = (center.dx - event.position.dx) / newScale;
+    double newMoveY = (center.dy - event.position.dy) / newScale;
+    print(
+        'FlutterPainterWidget _onPointerScroll newScale: $newScale newMoveX: $newMoveX newMoveY: $newMoveY');
+    if (newScale > 1.0) {
+      _moveX = newMoveX * (newScale - 0.8);
+      _moveY = newMoveY * (newScale - 0.8);
+    } else {
+      _moveX = newMoveX * (newScale - 0.5).clamp(0.0, 0.5);
+      _moveY = newMoveY * (newScale - 0.5).clamp(0.0, 0.5);
+    }
+
+    setScale(newScale);
+  }
+
   /// 切换画板模式
   void _switchBoradMode() {
     if (_boradMode != BoradMode.Edit) {
@@ -324,6 +360,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       _tmpMoveY = is90 ? _moveX : _moveY;
       _tmpScale = _scale;
     }
+    print(
+        'FlutterPainterWidget _handleOnScaleStart _tmpMoveX: $_tmpMoveX _tmpMoveY: $_tmpMoveY _tmpScale: $_tmpScale');
   }
 
   /// 处理缩放移动更新事件
@@ -331,21 +369,22 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     /// 计算运动距离
     double focalMoveX = (details.focalPoint.dx - _tmpFocal.dx);
     double focalMoveY = (details.focalPoint.dy - _tmpFocal.dy);
-    double scale = _tmpScale! * details.scale;
+    double newScale = _tmpScale! * details.scale;
 
     /// 有选中文字处理选中文字
     if (_tempEdit != null && _tempEdit.selected) {
       double textMoveX = _tmpMoveX! + focalMoveX / _scale;
       double textMoveY = _tmpMoveY! + focalMoveY / _scale;
       _tempEdit.offset = Offset(textMoveX, textMoveY);
-      _tempEdit.scale = scale;
+      _tempEdit.scale = newScale;
       drawBoradListenable.update();
     } else {
       _moveX = _tmpMoveX! + focalMoveX / _tmpScale!;
       _moveY = _tmpMoveY! + focalMoveY / _tmpScale!;
-      _scale = scale;
-      setState(() {});
+      setScale(newScale);
     }
+    print(
+        'FlutterPainterWidget _handleOnScaleUpdate _moveX: $_moveX _moveY: $_moveY _scale: $_scale');
   }
 
   /// 处理滑动开始事件
@@ -456,10 +495,23 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     setState(() {});
   }
 
+  /// 设置背景缩放
+  /// [newBgScale] 缩放
+  void setBgScale(double newBgScale) {
+    _bgScale = newBgScale;
+    setState(() {});
+  }
+
   /// 设置缩放
-  /// [scale] 缩放
-  void setScale(double scale) {
-    _bgScale = scale;
+  /// [newScale] 缩放
+  void setScale(double newScale) {
+    if (newScale > 3.0) {
+      newScale = 3.0;
+    } else if (newScale < 0.5) {
+      newScale = 0.5;
+    }
+    _scale = newScale;
+
     setState(() {});
   }
 
