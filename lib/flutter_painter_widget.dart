@@ -263,20 +263,29 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     // }
     print('FlutterPainterWidget _onPointerScroll event: ${event.toString()}');
     Offset center = MediaQuery.of(context).size.center(Offset.zero);
-    double newScale = scale + event.scrollDelta.dy / center.dy;
-    double newMoveX = (center.dx - event.position.dx) / newScale;
-    double newMoveY = (center.dy - event.position.dy) / newScale;
-    print(
-        'FlutterPainterWidget _onPointerScroll newScale: $newScale newMoveX: $newMoveX newMoveY: $newMoveY');
-    if (newScale > 1.0) {
-      _moveX = newMoveX * (newScale - 0.8);
-      _moveY = newMoveY * (newScale - 0.8);
-    } else {
-      _moveX = newMoveX * (newScale - 0.5).clamp(0.0, 0.5);
-      _moveY = newMoveY * (newScale - 0.5).clamp(0.0, 0.5);
-    }
+    double scaleRatio = -event.scrollDelta.dy / center.dy;
 
-    setScale(newScale);
+    print('FlutterPainterWidget _onPointerScroll scaleRatio:$scaleRatio');
+
+    /// 有选中文字处理选中文字
+    if (_tempEdit != null && _tempEdit.selected) {
+      _tempEdit.scale = getNewScale(_tempEdit.scale + scaleRatio);
+      drawBoradListenable.update();
+    } else {
+      double newScale = scale + scaleRatio;
+      double newMoveX = (center.dx - event.position.dx) / newScale;
+      double newMoveY = (center.dy - event.position.dy) / newScale;
+      print(
+          'FlutterPainterWidget _onPointerScroll newScale: $newScale newMoveX: $newMoveX newMoveY: $newMoveY');
+      if (newScale > 1.0) {
+        _moveX = newMoveX * (newScale - 0.8);
+        _moveY = newMoveY * (newScale - 0.8);
+      } else {
+        _moveX = newMoveX * (newScale - 0.5).clamp(0.0, 0.5);
+        _moveY = newMoveY * (newScale - 0.5).clamp(0.0, 0.5);
+      }
+      setScale(newScale);
+    }
   }
 
   /// 切换画板模式
@@ -376,7 +385,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       double textMoveX = _tmpMoveX! + focalMoveX / _scale;
       double textMoveY = _tmpMoveY! + focalMoveY / _scale;
       _tempEdit.offset = Offset(textMoveX, textMoveY);
-      _tempEdit.scale = newScale;
+      _tempEdit.scale = getNewScale(newScale);
       drawBoradListenable.update();
     } else {
       _moveX = _tmpMoveX! + focalMoveX / _tmpScale!;
@@ -502,16 +511,21 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     setState(() {});
   }
 
-  /// 设置缩放
-  /// [newScale] 缩放
-  void setScale(double newScale) {
+  /// 获取新的缩放大小
+  /// [newScale] 缩放大小
+  double getNewScale(double newScale) {
     if (newScale > 3.0) {
       newScale = 3.0;
     } else if (newScale < 0.5) {
       newScale = 0.5;
     }
-    _scale = newScale;
+    return newScale;
+  }
 
+  /// 设置缩放
+  /// [newScale] 缩放
+  void setScale(double newScale) {
+    _scale = getNewScale(newScale);
     setState(() {});
   }
 
