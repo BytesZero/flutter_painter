@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/rendering.dart';
 
 import 'base_draw.dart';
 import 'draw_edit.dart';
