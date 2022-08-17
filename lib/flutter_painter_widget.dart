@@ -9,12 +9,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_painter/draw/draw_edit.dart';
 import 'package:flutter_painter/draw/draw_image.dart';
 
-import 'draw/base_draw.dart';
 import 'draw/base_line.dart';
 import 'draw/draw_borad.dart';
 import 'draw/draw_eraser.dart';
 import 'draw/draw_line.dart';
 import 'draw/draw_text.dart';
+import 'platform/painter_platform.dart';
 
 /// Flutter Painter
 class FlutterPainterWidget extends StatefulWidget {
@@ -117,6 +117,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     if (widget.brushWidth != null) {
       _brushWidth = widget.brushWidth!;
     }
+    // 禁用默认的右键事件处理
+    disableRightClick();
     super.initState();
   }
 
@@ -141,23 +143,18 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
             alignment: FractionalOffset.center,
             child: Listener(
               onPointerDown: (event) {
-                _onPointerDown();
+                _onPointerDown(event.buttons);
               },
               onPointerUp: (event) {
-                _onPointerUp();
+                _onPointerUp(event.buttons);
               },
               onPointerCancel: (event) {
                 // 这个回调彻底解决手指数异常的问题
-                _onPointerUp();
+                _onPointerUp(event.buttons);
               },
-              onPointerHover: (event) {
-                print('FlutterPainterWidget onPointerHover');
-              },
-              onPointerMove: (event) {
-                print('FlutterPainterWidget onPointerMove');
-              },
+              onPointerHover: (event) {},
+              onPointerMove: (event) {},
               onPointerSignal: (event) {
-                print('FlutterPainterWidget onPointerSignal');
                 if (event is PointerScrollEvent) {
                   _onPointerScroll(event);
                 }
@@ -242,30 +239,24 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   }
 
   /// 抬起事件
-  void _onPointerDown() {
+  void _onPointerDown(int buttons) {
     if (_pointerCount < 0) _pointerCount = 0;
     _pointerCount += 1;
-    _switchBoradMode();
+    _switchBoradMode(buttons);
   }
 
   /// 抬起、取消事件
-  void _onPointerUp() {
+  void _onPointerUp(int buttons) {
     if (_pointerCount > 0) _pointerCount -= 1;
     if (_pointerCount < 1) {
-      _switchBoradMode();
+      _switchBoradMode(buttons);
     }
   }
 
   /// 鼠标滚轮事件
   void _onPointerScroll(PointerScrollEvent event) {
-    // if (boradMode == BoradMode.Zoom) {
-    //   // _handleOnScaleUpdate(event);
-    // }
-    print('FlutterPainterWidget _onPointerScroll event: ${event.toString()}');
     Offset center = MediaQuery.of(context).size.center(Offset.zero);
     double scaleRatio = -event.scrollDelta.dy / center.dy;
-
-    print('FlutterPainterWidget _onPointerScroll scaleRatio:$scaleRatio');
 
     /// 有选中文字处理选中文字
     if (_tempEdit != null && _tempEdit.selected) {
@@ -275,8 +266,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       double newScale = scale + scaleRatio;
       double newMoveX = (center.dx - event.position.dx) / newScale;
       double newMoveY = (center.dy - event.position.dy) / newScale;
-      print(
-          'FlutterPainterWidget _onPointerScroll newScale: $newScale newMoveX: $newMoveX newMoveY: $newMoveY');
       if (newScale > 1.0) {
         _moveX = newMoveX * (newScale - 0.8);
         _moveY = newMoveY * (newScale - 0.8);
@@ -289,9 +278,9 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   }
 
   /// 切换画板模式
-  void _switchBoradMode() {
+  void _switchBoradMode(int buttons) {
     if (_boradMode != BoradMode.Edit) {
-      if (_pointerCount > 1) {
+      if (_pointerCount > 1 || buttons == kSecondaryMouseButton) {
         _boradMode = BoradMode.Zoom;
       } else {
         _boradMode = BoradMode.Draw;
@@ -369,8 +358,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       _tmpMoveY = is90 ? _moveX : _moveY;
       _tmpScale = _scale;
     }
-    print(
-        'FlutterPainterWidget _handleOnScaleStart _tmpMoveX: $_tmpMoveX _tmpMoveY: $_tmpMoveY _tmpScale: $_tmpScale');
   }
 
   /// 处理缩放移动更新事件
@@ -392,8 +379,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       _moveY = _tmpMoveY! + focalMoveY / _tmpScale!;
       setScale(newScale);
     }
-    print(
-        'FlutterPainterWidget _handleOnScaleUpdate _moveX: $_moveX _moveY: $_moveY _scale: $_scale');
   }
 
   /// 处理滑动开始事件

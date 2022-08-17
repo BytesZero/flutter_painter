@@ -1,8 +1,7 @@
 import 'dart:math';
 import 'dart:typed_data';
-import 'dart:ui';
+import 'dart:ui' as ui;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_painter/flutter_painter.dart';
 
@@ -364,7 +363,7 @@ class _HomePageState extends State<HomePage> {
   /// 获取当前中心位置
   Offset getCurrentCenterOffset() {
     Size? broadSize = painterKey.currentContext?.size ??
-        MediaQueryData.fromWindow(window).size;
+        MediaQueryData.fromWindow(ui.window).size;
     double moveX = painterKey.currentState?.moveX ?? 0;
     double moveY = painterKey.currentState?.moveY ?? 0;
     print('broadSize:$broadSize moveX:$moveX moveY:$moveY');
