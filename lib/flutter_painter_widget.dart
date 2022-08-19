@@ -54,6 +54,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     with AutomaticKeepAliveClientMixin {
   // 绘制转成图片的 key
   GlobalKey _drawToImageKey = GlobalKey();
+  // 画板的 key
+  GlobalKey _drawBoradKey = GlobalKey();
 
   /// 默认缩放信息
   double _scale = 1.0;
@@ -67,7 +69,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   double _moveY = 0.0;
   double get moveY => _moveY;
   double? _tmpMoveY = 0.0;
-  // double _rotation = 0.0;
   double _bgRotation = 0.0;
   // 获取旋转角度
   double get backgroundRotation => _bgRotation;
@@ -109,6 +110,12 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   TapDownDetails? _tempTapDownDetails;
   // 画板页面大小
   Size? _boradSize;
+  Size get boradSize =>
+      _boradSize ??
+      _drawBoradKey.currentContext?.size ??
+      MediaQuery.of(context).size;
+  // 画布页面大小
+  Size? _painterSize;
   @override
   void initState() {
     /// 设置默认
@@ -135,20 +142,19 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     _bgMatrix4 = Matrix4.identity()
       ..scale(_bgScale, _bgScale)
       ..rotateZ(_bgRotation);
-    // double? newWidth =
-    //     widget.width != null ? widget.width! * _scale : double.infinity;
-    // if (widget.width != null && widget.width! >= newWidth) {
-    //   newWidth = widget.width;
-    // }
-    // double? newHeight =
-    //     widget.height != null ? widget.height! * _scale : double.infinity;
-    // if (widget.height != null && widget.height! >= newHeight) {
-    //   newHeight = widget.height;
-    // }
-    // _boradSize = MediaQuery.of(context).size;
+    double newWidth = widget.width ?? double.infinity;
+    double newHeight = widget.height ?? double.infinity;
+    if (widget.width != null && widget.height != null) {
+      newWidth = is90 ? widget.height! : widget.width!;
+      newWidth = newWidth * bgScale;
+      newHeight = is90 ? widget.width! : widget.height!;
+      newHeight = newHeight * bgScale;
+      _painterSize = Size(newWidth, newHeight);
+    }
     print(
-        'FlutterPainter size ${MediaQuery.of(context).size} padding: ${MediaQuery.of(context).padding}');
+        'FlutterPainter size ${MediaQuery.of(context).size} newWidth $newWidth newHeight $newHeight');
     return Scaffold(
+      key: _drawBoradKey,
       body: Listener(
         onPointerDown: (event) {
           _onPointerDown(event.buttons);
@@ -213,8 +219,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
           },
           child: Center(
             child: SizedBox(
-              width: widget.width ?? double.infinity,
-              height: widget.height ?? double.infinity,
+              width: newWidth,
+              height: newHeight,
               child: RepaintBoundary(
                 key: _drawToImageKey,
                 child: Transform(
@@ -427,20 +433,21 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 获取新的坐标点
   Offset _getNewPoint(Offset point) {
-    //获取画板大小
-    _boradSize ??= MediaQuery.of(context).size + Offset(0, -56);
+    _boradSize ??=
+        _drawBoradKey.currentContext?.size ?? MediaQuery.of(context).size;
+    _painterSize ??= _drawToImageKey.currentContext?.size ?? Size.zero;
     // 构建画布矩形（背景图片）
-    Rect rect = Rect.fromLTWH(0, 0, widget.width!, widget.height!);
+    Rect rect = Rect.fromLTWH(0, 0, _painterSize!.width, _painterSize!.height);
     // 执行矩阵变换
     Rect newRect = MatrixUtils.transformRect(_matrix4, rect);
     // 计算画布距离画板（手势接收区域）的距离
-    Offset diffOffset = newRect.center - _boradSize!.center(Offset.zero);
+    Offset diffOffset = newRect.center - boradSize.center(Offset.zero);
     // 计算手势偏移量，并恢复到矩阵变换前的大小
     Offset newPoint = (point + diffOffset) / scale;
     // 添加移动产生的偏移量
     newPoint = newPoint - Offset(moveX, moveY) * 2;
     print(
-        'FlutterPainter _handleOnPanUpdate: rect: $rect ,newRect:$newRect,diffOffset:$diffOffset , point: $point, newPoint: $newPoint');
+        'FlutterPainter _handleOnPanUpdate: _boradSize:$_boradSize rect: $rect ,newRect:$newRect,diffOffset:$diffOffset , point: $point, newPoint: $newPoint');
     print(
         'FlutterPainter _handleOnPanUpdate: $point -> $newPoint moveX: $_moveX moveY: $_moveY scale: $_scale');
     return newPoint;

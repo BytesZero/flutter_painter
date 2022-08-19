@@ -56,6 +56,9 @@ class _HomePageState extends State<HomePage> {
   /// 旋转角度
   double rotation = 0.0;
 
+  /// 是否被 90度的奇数，就是90和270
+  bool get is90 => (rotation ~/ (pi / 2)).isOdd;
+
   /// 绘制的key
   GlobalKey<FlutterPainterWidgetState> painterKey = GlobalKey();
   GlobalKey<FlutterPainterWidgetState> imgKey = GlobalKey();
@@ -82,6 +85,15 @@ class _HomePageState extends State<HomePage> {
       getAbsoluteSize();
     }
     print('FlutterPainter width: $width, height: $height');
+  }
+
+  /// 获取图片大小
+  /// [return] 图片大小
+  Size getImageSize() {
+    if (width == null || height == null) {
+      return Size.zero;
+    }
+    return is90 ? Size(height!, width!) : Size(width!, height!);
   }
 
   @override
@@ -227,9 +239,24 @@ class _HomePageState extends State<HomePage> {
                           heroTag: 'rotate',
                           onPressed: () {
                             painterKey.currentState?.clearDraw();
+                            // 计算旋转
                             rotation = rotation - pi / 2;
                             painterKey.currentState
                                 ?.setBackgroundRotation(rotation);
+                            // 计算缩放
+                            Size imgSize = getImageSize();
+                            Size broadSize =
+                                painterKey.currentState?.boradSize ?? Size.zero;
+                            double scaleWidth = broadSize.width / imgSize.width;
+                            double scaleHeight =
+                                broadSize.height / imgSize.height;
+                            double minScale = min(scaleWidth, scaleHeight);
+                            painterKey.currentState?.setBgScale(minScale);
+                            painterKey.currentState?.setScale(1);
+                            painterKey.currentState?.setMove(0, 0);
+                            print(
+                                'FlutterPainter imgSize:$imgSize broadSize:$broadSize minScale:$minScale scaleWidth:$scaleWidth scaleHeight:$scaleHeight');
+                            setState(() {});
                           },
                         ),
                         SizedBox(width: 2),
