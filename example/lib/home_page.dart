@@ -22,6 +22,8 @@ class _HomePageState extends State<HomePage> {
       'https://cdn.pixabay.com/photo/2017/07/04/10/07/board-2470557__340.jpg';
   String imageUrl3 =
       'https://cdn.pixabay.com/photo/2017/07/20/03/53/homework-2521144_1280.jpg';
+  String imageUrl4 =
+      'https://img.banjixiaoguanjia.com/app_image_5f2f7aab74eab167730f6b26_cos/8613979fa6193571e9373c936c4a363a_1660298899331.jpg?1660879803667';
   //选择颜色
   Color selectColor = Colors.red;
   // 颜色列表
@@ -109,7 +111,7 @@ class _HomePageState extends State<HomePage> {
               width: width,
               height: height,
               background: Image.network(
-                imageUrl1,
+                imageUrl2,
                 fit: BoxFit.cover,
                 key: imgKey,
               ),
@@ -255,7 +257,7 @@ class _HomePageState extends State<HomePage> {
                             painterKey.currentState?.setScale(1);
                             painterKey.currentState?.setMove(0, 0);
                             print(
-                                'FlutterPainter imgSize:$imgSize broadSize:$broadSize minScale:$minScale scaleWidth:$scaleWidth scaleHeight:$scaleHeight');
+                                'FlutterPainter imgSize:$imgSize broadSize:$broadSize , minScale:$minScale scaleWidth:$scaleWidth scaleHeight:$scaleHeight');
                             setState(() {});
                           },
                         ),
@@ -415,7 +417,7 @@ class _HomePageState extends State<HomePage> {
 
   /// 获取当前中心位置
   Offset getCurrentCenterOffset() {
-    Size? broadSize = painterKey.currentContext?.size ??
+    Size? broadSize = imgKey.currentContext?.size ??
         MediaQueryData.fromWindow(ui.window).size;
     double moveX = painterKey.currentState?.moveX ?? 0;
     double moveY = painterKey.currentState?.moveY ?? 0;

@@ -139,9 +139,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     _matrix4 = Matrix4.identity()
       ..scale(_scale, _scale)
       ..translate(_moveX, _moveY);
-    _bgMatrix4 = Matrix4.identity()
-      ..scale(_bgScale, _bgScale)
-      ..rotateZ(_bgRotation);
+    _bgMatrix4 = Matrix4.identity()..scale(_bgScale, _bgScale);
+    // ..rotateZ(_bgRotation);
     double newWidth = widget.width ?? double.infinity;
     double newHeight = widget.height ?? double.infinity;
     if (widget.width != null && widget.height != null) {
@@ -232,7 +231,10 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
                       Transform(
                         transform: _bgMatrix4,
                         alignment: FractionalOffset.center,
-                        child: widget.background,
+                        child: RotatedBox(
+                          quarterTurns: _bgRotation ~/ (pi / 2),
+                          child: widget.background,
+                        ),
                       ),
                       RepaintBoundary(
                         child: CustomPaint(
@@ -604,7 +606,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   /// 重置
   void resetParams() {
     _scale = 1.0;
-    _bgScale = 1.0;
     _moveX = 0;
     _moveY = 0;
     drawBoradListenable.setSelect(_tempEdit, false);
