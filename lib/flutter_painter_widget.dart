@@ -139,7 +139,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     _matrix4 = Matrix4.identity()
       ..scale(_scale, _scale)
       ..translate(_moveX, _moveY);
-    _bgMatrix4 = Matrix4.identity()..scale(_bgScale, _bgScale);
+    // _bgMatrix4 = Matrix4.identity();
+    // ..scale(_bgScale, _bgScale);
     // ..rotateZ(_bgRotation);
     double newWidth = widget.width ?? double.infinity;
     double newHeight = widget.height ?? double.infinity;
@@ -228,13 +229,9 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      Transform(
-                        transform: _bgMatrix4,
-                        alignment: FractionalOffset.center,
-                        child: RotatedBox(
-                          quarterTurns: _bgRotation ~/ (pi / 2),
-                          child: widget.background,
-                        ),
+                      RotatedBox(
+                        quarterTurns: _bgRotation ~/ (pi / 2),
+                        child: widget.background,
                       ),
                       RepaintBoundary(
                         child: CustomPaint(

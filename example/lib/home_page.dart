@@ -113,7 +113,7 @@ class _HomePageState extends State<HomePage> {
               width: width,
               height: height,
               background: Image.network(
-                imageUrl5,
+                imageUrl1,
                 fit: BoxFit.cover,
                 key: imgKey,
               ),
@@ -255,7 +255,9 @@ class _HomePageState extends State<HomePage> {
                             double scaleHeight =
                                 broadSize.height / imgSize.height;
                             double minScale = min(scaleWidth, scaleHeight);
-                            painterKey.currentState?.setBgScale(1);
+                            // width = imgSize.width * minScale;
+                            // height = imgSize.height * minScale;
+                            painterKey.currentState?.setBgScale(minScale);
                             painterKey.currentState?.setScale(1);
                             painterKey.currentState?.setMove(0, 0);
                             print(
