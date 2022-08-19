@@ -401,7 +401,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 处理滑动开始事件
   void _handleOnPanStart(Offset point) {
-    /// 擦除模式（橡皮擦）
+    // 擦除模式（橡皮擦）
     if (_isEraseMode) {
       _tempLine = DrawEraser()..lineWidth = _eraseWidth;
     } else {
@@ -416,13 +416,23 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 处理滑动更新事件
   void _handleOnPanUpdate(Offset point) {
+    Offset newPoint = _getNewPoint(point);
+    if (_tempLine == null) {
+      _handleOnPanStart(newPoint);
+    } else {
+      _tempLine!.linePath.add(newPoint);
+      drawBoradListenable.setLast(_tempLine!);
+    }
+  }
+
+  /// 获取新的坐标点
+  Offset _getNewPoint(Offset point) {
     //获取画板大小
     _boradSize ??= MediaQuery.of(context).size + Offset(0, -56);
     // 构建画布矩形（背景图片）
     Rect rect = Rect.fromLTWH(0, 0, widget.width!, widget.height!);
     // 执行矩阵变换
     Rect newRect = MatrixUtils.transformRect(_matrix4, rect);
-    // newRect = rect.translate(moveX, moveY);
     // 计算画布距离画板（手势接收区域）的距离
     Offset diffOffset = newRect.center - _boradSize!.center(Offset.zero);
     // 计算手势偏移量，并恢复到矩阵变换前的大小
@@ -433,12 +443,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
         'FlutterPainter _handleOnPanUpdate: rect: $rect ,newRect:$newRect,diffOffset:$diffOffset , point: $point, newPoint: $newPoint');
     print(
         'FlutterPainter _handleOnPanUpdate: $point -> $newPoint moveX: $_moveX moveY: $_moveY scale: $_scale');
-    if (_tempLine == null) {
-      _handleOnPanStart(newPoint);
-    } else {
-      _tempLine!.linePath.add(newPoint);
-      drawBoradListenable.setLast(_tempLine!);
-    }
+    return newPoint;
   }
 
   /// 设置画笔颜色
