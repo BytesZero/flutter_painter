@@ -24,6 +24,8 @@ class _HomePageState extends State<HomePage> {
       'https://cdn.pixabay.com/photo/2017/07/20/03/53/homework-2521144_1280.jpg';
   String imageUrl4 =
       'https://img.banjixiaoguanjia.com/app_image_5f2f7aab74eab167730f6b26_cos/8613979fa6193571e9373c936c4a363a_1660298899331.jpg?1660879803667';
+  String imageUrl5 =
+      'https://img.banjixiaoguanjia.com/app_image_5f2f7aab74eab167730f6b26_cos/03c5035b0cacba18b992260f4b8e5be6_1660298900012.jpg?1660879803667';
   //选择颜色
   Color selectColor = Colors.red;
   // 颜色列表
@@ -111,7 +113,7 @@ class _HomePageState extends State<HomePage> {
               width: width,
               height: height,
               background: Image.network(
-                imageUrl2,
+                imageUrl5,
                 fit: BoxFit.cover,
                 key: imgKey,
               ),
@@ -253,7 +255,7 @@ class _HomePageState extends State<HomePage> {
                             double scaleHeight =
                                 broadSize.height / imgSize.height;
                             double minScale = min(scaleWidth, scaleHeight);
-                            painterKey.currentState?.setBgScale(minScale);
+                            painterKey.currentState?.setBgScale(1);
                             painterKey.currentState?.setScale(1);
                             painterKey.currentState?.setMove(0, 0);
                             print(

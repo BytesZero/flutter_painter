@@ -629,6 +629,9 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     resetParams();
     await Future.delayed(Duration(milliseconds: 300));
 
+    print(
+        'FlutterPainter getImage size:${_drawToImageKey.currentContext?.size}');
+
     /// 开始保存图片
     RenderRepaintBoundary boundary = _drawToImageKey.currentContext!
         .findRenderObject() as RenderRepaintBoundary;
@@ -637,21 +640,5 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
         as Future<ByteData>);
     Uint8List pngBytes = byteData.buffer.asUint8List();
     return pngBytes;
-  }
-}
-
-/// 自定剪裁
-class PainterClipRect extends CustomClipper<Rect> {
-  final Rect rect;
-  PainterClipRect(this.rect);
-  @override
-  Rect getClip(Size size) {
-    print('PainterClipRect getClip ${rect.toString()} size:$size');
-    return rect;
-  }
-
-  @override
-  bool shouldReclip(CustomClipper<Rect> oldClipper) {
-    return true;
   }
 }
