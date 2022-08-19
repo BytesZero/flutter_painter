@@ -433,9 +433,9 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 获取新的坐标点
   Offset _getNewPoint(Offset point) {
-    _boradSize ??=
+    _boradSize =
         _drawBoradKey.currentContext?.size ?? MediaQuery.of(context).size;
-    _painterSize ??= _drawToImageKey.currentContext?.size ?? Size.zero;
+    _painterSize = _drawToImageKey.currentContext?.size ?? Size.zero;
     // 构建画布矩形（背景图片）
     Rect rect = Rect.fromLTWH(0, 0, _painterSize!.width, _painterSize!.height);
     // 执行矩阵变换
@@ -603,6 +603,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   /// 重置
   void resetParams() {
     _scale = 1.0;
+    _bgScale = 1.0;
     _moveX = 0;
     _moveY = 0;
     drawBoradListenable.setSelect(_tempEdit, false);
