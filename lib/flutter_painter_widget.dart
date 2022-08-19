@@ -319,6 +319,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   /// 处理点击事件
   void _handleOnTap() {
     Offset lp = _tempTapDownDetails!.localPosition;
+    lp = _getNewPoint(lp);
     if (_tempEdit != null) {
       // 计算删除区域
       double delRadius = _tempEdit.delRadius;
