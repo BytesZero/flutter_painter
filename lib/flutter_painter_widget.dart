@@ -107,7 +107,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   var _tempEdit;
   // 临时按下事件记录，防止事件错乱
   TapDownDetails? _tempTapDownDetails;
-
+  // 画板页面大小
+  Size? _boradSize;
   @override
   void initState() {
     /// 设置默认
@@ -134,90 +135,107 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     _bgMatrix4 = Matrix4.identity()
       ..scale(_bgScale, _bgScale)
       ..rotateZ(_bgRotation);
+    // double? newWidth =
+    //     widget.width != null ? widget.width! * _scale : double.infinity;
+    // if (widget.width != null && widget.width! >= newWidth) {
+    //   newWidth = widget.width;
+    // }
+    // double? newHeight =
+    //     widget.height != null ? widget.height! * _scale : double.infinity;
+    // if (widget.height != null && widget.height! >= newHeight) {
+    //   newHeight = widget.height;
+    // }
+    // _boradSize = MediaQuery.of(context).size;
+    print(
+        'FlutterPainter size ${MediaQuery.of(context).size} padding: ${MediaQuery.of(context).padding}');
     return Scaffold(
-      body: Container(
-        child: RepaintBoundary(
-          key: _drawToImageKey,
-          child: Transform(
-            transform: _matrix4,
-            alignment: FractionalOffset.center,
-            child: Listener(
-              onPointerDown: (event) {
-                _onPointerDown(event.buttons);
-              },
-              onPointerUp: (event) {
-                _onPointerUp(event.buttons);
-              },
-              onPointerCancel: (event) {
-                // 这个回调彻底解决手指数异常的问题
-                _onPointerUp(event.buttons);
-              },
-              onPointerHover: (event) {},
-              onPointerMove: (event) {},
-              onPointerSignal: (event) {
-                if (event is PointerScrollEvent) {
-                  _onPointerScroll(event);
-                }
-              },
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTapDown: (details) {
-                  // 设置按下事件信息
-                  _tempTapDownDetails = details;
-                  // 如果橡皮擦，则按下就开始擦除
-                  if (_isEraseMode) {
-                    _handleOnPanUpdate(details.localPosition);
-                    _handleOnPanUpdate(
-                        details.localPosition.translate(_eraseWidth, 0));
-                  }
-                },
-                onTapUp: (details) {
-                  /// 这里是解决点击后再绘制会从点击的那个点开始绘制的问题，最终效果是多出一段距离来
-                  _tempLine = null;
-                },
-                onTap: () {
-                  _handleOnTap();
-                  // 清空按下信息，方式错误绘制
-                  _tempTapDownDetails = null;
-                },
-                onScaleStart: (details) {
-                  if (boradMode == BoradMode.Zoom ||
-                      boradMode == BoradMode.Edit) {
-                    _handleOnScaleStart(details);
-                  } else {
-                    // 处理按下事件到滑动事件的过渡阶段的距离
-                    if (_tempTapDownDetails != null) {
-                      _handleOnPanUpdate(_tempTapDownDetails!.localPosition);
-                    }
-                    _handleOnPanUpdate(details.localFocalPoint);
-                  }
-                },
-                onScaleUpdate: (details) {
-                  if (boradMode == BoradMode.Zoom ||
-                      boradMode == BoradMode.Edit) {
-                    _handleOnScaleUpdate(details);
-                  } else {
-                    _handleOnPanUpdate(details.localFocalPoint);
-                  }
-                },
-                onScaleEnd: (details) {
-                  _tempLine = null;
-                  _tempTapDownDetails = null;
-                },
-                child: Stack(
-                  children: [
-                    Transform(
-                      transform: _bgMatrix4,
-                      alignment: FractionalOffset.center,
-                      child: widget.background,
-                    ),
-                    RepaintBoundary(
-                      child: CustomPaint(
-                        size: Size.infinite,
-                        painter: DrawBorad(drawBoradListenable),
+      body: Listener(
+        onPointerDown: (event) {
+          _onPointerDown(event.buttons);
+        },
+        onPointerUp: (event) {
+          _onPointerUp(event.buttons);
+        },
+        onPointerCancel: (event) {
+          // 这个回调彻底解决手指数异常的问题
+          _onPointerUp(event.buttons);
+        },
+        onPointerHover: (event) {},
+        onPointerMove: (event) {},
+        onPointerSignal: (event) {
+          if (event is PointerScrollEvent) {
+            _onPointerScroll(event);
+          }
+        },
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTapDown: (details) {
+            // 设置按下事件信息
+            _tempTapDownDetails = details;
+            // 如果橡皮擦，则按下就开始擦除
+            if (_isEraseMode) {
+              _handleOnPanUpdate(details.localPosition);
+              _handleOnPanUpdate(
+                  details.localPosition.translate(_eraseWidth, 0));
+            }
+          },
+          onTapUp: (details) {
+            /// 这里是解决点击后再绘制会从点击的那个点开始绘制的问题，最终效果是多出一段距离来
+            _tempLine = null;
+          },
+          onTap: () {
+            _handleOnTap();
+            // 清空按下信息，方式错误绘制
+            _tempTapDownDetails = null;
+          },
+          onScaleStart: (details) {
+            print('FlutterPainter onScaleStart ${details.toString()}');
+            if (boradMode == BoradMode.Zoom || boradMode == BoradMode.Edit) {
+              _handleOnScaleStart(details);
+            } else {
+              // 处理按下事件到滑动事件的过渡阶段的距离
+              if (_tempTapDownDetails != null) {
+                _handleOnPanUpdate(_tempTapDownDetails!.localPosition);
+              }
+              _handleOnPanUpdate(details.localFocalPoint);
+            }
+          },
+          onScaleUpdate: (details) {
+            if (boradMode == BoradMode.Zoom || boradMode == BoradMode.Edit) {
+              _handleOnScaleUpdate(details);
+            } else {
+              _handleOnPanUpdate(details.localFocalPoint);
+            }
+          },
+          onScaleEnd: (details) {
+            _tempLine = null;
+            _tempTapDownDetails = null;
+          },
+          child: Center(
+            child: SizedBox(
+              width: widget.width ?? double.infinity,
+              height: widget.height ?? double.infinity,
+              child: RepaintBoundary(
+                key: _drawToImageKey,
+                child: Transform(
+                  transform: _matrix4,
+                  alignment: FractionalOffset.center,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Transform(
+                        transform: _bgMatrix4,
+                        alignment: FractionalOffset.center,
+                        child: widget.background,
                       ),
-                    ),
-                  ],
+                      RepaintBoundary(
+                        child: CustomPaint(
+                          size: Size.infinite,
+                          painter: DrawBorad(drawBoradListenable),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -266,13 +284,13 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       double newScale = scale + scaleRatio;
       double newMoveX = (center.dx - event.position.dx) / newScale;
       double newMoveY = (center.dy - event.position.dy) / newScale;
-      if (newScale > 1.0) {
-        _moveX = newMoveX * (newScale - 0.8);
-        _moveY = newMoveY * (newScale - 0.8);
-      } else {
-        _moveX = newMoveX * (newScale - 0.5).clamp(0.0, 0.5);
-        _moveY = newMoveY * (newScale - 0.5).clamp(0.0, 0.5);
-      }
+      // if (newScale > 1.0) {
+      //   _moveX = newMoveX * (newScale - 0.8);
+      //   _moveY = newMoveY * (newScale - 0.8);
+      // } else {
+      //   _moveX = newMoveX * (newScale - 0.5).clamp(0.0, 0.5);
+      //   _moveY = newMoveY * (newScale - 0.5).clamp(0.0, 0.5);
+      // }
       setScale(newScale);
     }
   }
@@ -398,10 +416,27 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 处理滑动更新事件
   void _handleOnPanUpdate(Offset point) {
+    //获取画板大小
+    _boradSize ??= MediaQuery.of(context).size + Offset(0, -56);
+    // 构建画布矩形（背景图片）
+    Rect rect = Rect.fromLTWH(0, 0, widget.width!, widget.height!);
+    // 执行矩阵变换
+    Rect newRect = MatrixUtils.transformRect(_matrix4, rect);
+    // newRect = rect.translate(moveX, moveY);
+    // 计算画布距离画板（手势接收区域）的距离
+    Offset diffOffset = newRect.center - _boradSize!.center(Offset.zero);
+    // 计算手势偏移量，并恢复到矩阵变换前的大小
+    Offset newPoint = (point + diffOffset) / scale;
+    // 添加移动产生的偏移量
+    newPoint = newPoint - Offset(moveX, moveY) * 2;
+    print(
+        'FlutterPainter _handleOnPanUpdate: rect: $rect ,newRect:$newRect,diffOffset:$diffOffset , point: $point, newPoint: $newPoint');
+    print(
+        'FlutterPainter _handleOnPanUpdate: $point -> $newPoint moveX: $_moveX moveY: $_moveY scale: $_scale');
     if (_tempLine == null) {
-      _handleOnPanStart(point);
+      _handleOnPanStart(newPoint);
     } else {
-      _tempLine!.linePath.add(point);
+      _tempLine!.linePath.add(newPoint);
       drawBoradListenable.setLast(_tempLine!);
     }
   }
@@ -587,5 +622,21 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
         as Future<ByteData>);
     Uint8List pngBytes = byteData.buffer.asUint8List();
     return pngBytes;
+  }
+}
+
+/// 自定剪裁
+class PainterClipRect extends CustomClipper<Rect> {
+  final Rect rect;
+  PainterClipRect(this.rect);
+  @override
+  Rect getClip(Size size) {
+    print('PainterClipRect getClip ${rect.toString()} size:$size');
+    return rect;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Rect> oldClipper) {
+    return true;
   }
 }

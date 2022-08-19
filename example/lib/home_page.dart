@@ -17,7 +17,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   String imageUrl1 =
-      'https://cdn.pixabay.com/photo/2021/01/11/13/28/cross-country-skiing-5908416_1280.jpg';
+      'https://images.pexels.com/photos/12617812/pexels-photo-12617812.jpeg?cs=srgb&dl=pexels-maria-luiza-melo-12617812.jpg&fm=jpg';
   String imageUrl2 =
       'https://cdn.pixabay.com/photo/2017/07/04/10/07/board-2470557__340.jpg';
   String imageUrl3 =
@@ -58,6 +58,31 @@ class _HomePageState extends State<HomePage> {
 
   /// 绘制的key
   GlobalKey<FlutterPainterWidgetState> painterKey = GlobalKey();
+  GlobalKey<FlutterPainterWidgetState> imgKey = GlobalKey();
+
+  // 宽高
+  double? width;
+  double? height;
+
+  @override
+  void initState() {
+    super.initState();
+    getAbsoluteSize();
+  }
+
+  /// 获取最终图片的大小来设置画布的大小
+  void getAbsoluteSize() async {
+    await Future.delayed(Duration(milliseconds: 1000));
+    Size? size = imgKey.currentContext?.size;
+    if (size != null && size.width > 0 && size.height > 0) {
+      width = size.width;
+      height = size.height;
+      setState(() {});
+    } else {
+      getAbsoluteSize();
+    }
+    print('FlutterPainter width: $width, height: $height');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,11 +94,12 @@ class _HomePageState extends State<HomePage> {
           children: [
             FlutterPainterWidget(
               key: painterKey,
-              background: Center(
-                child: Image.network(
-                  imageUrl3,
-                  fit: BoxFit.cover,
-                ),
+              width: width,
+              height: height,
+              background: Image.network(
+                imageUrl1,
+                fit: BoxFit.cover,
+                key: imgKey,
               ),
               onTapText: (item) {
                 showEditTextDialog(drawText: item);
@@ -366,7 +392,8 @@ class _HomePageState extends State<HomePage> {
         MediaQueryData.fromWindow(ui.window).size;
     double moveX = painterKey.currentState?.moveX ?? 0;
     double moveY = painterKey.currentState?.moveY ?? 0;
-    print('broadSize:$broadSize moveX:$moveX moveY:$moveY');
+    print(
+        'broadSize:$broadSize moveX:$moveX moveY:$moveY size:${painterKey.currentContext?.size}');
     return broadSize.center(Offset.zero).translate(-moveX, -moveY);
   }
 }
