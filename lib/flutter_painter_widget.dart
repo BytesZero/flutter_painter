@@ -2,7 +2,6 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -130,6 +129,13 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   }
 
   @override
+  void dispose() {
+    //启用右键事件处理
+    enableRightClick();
+    super.dispose();
+  }
+
+  @override
   bool get wantKeepAlive => true;
 
   @override
@@ -145,8 +151,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       newWidth = newWidth * bgScale;
       newHeight = is90 ? widget.width! : widget.height!;
       newHeight = newHeight * bgScale;
-      _painterSize = Size(newWidth, newHeight);
     }
+    _painterSize = Size(newWidth, newHeight);
     print(
         'FlutterPainter size ${MediaQuery.of(context).size} newWidth $newWidth newHeight $newHeight');
     return Scaffold(
