@@ -79,7 +79,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 矩阵信息
   late Matrix4 _matrix4;
-  late Matrix4 _bgMatrix4;
 
   /// 图片矩阵
   Rect? imgRect;
@@ -139,9 +138,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     _matrix4 = Matrix4.identity()
       ..scale(_scale, _scale)
       ..translate(_moveX, _moveY);
-    // _bgMatrix4 = Matrix4.identity();
-    // ..scale(_bgScale, _bgScale);
-    // ..rotateZ(_bgRotation);
     double newWidth = widget.width ?? double.infinity;
     double newHeight = widget.height ?? double.infinity;
     if (widget.width != null && widget.height != null) {
@@ -278,6 +274,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 鼠标滚轮事件
   void _onPointerScroll(PointerScrollEvent event) {
+    print('FlutterPainter1 _onPointerScroll');
     Offset center = MediaQuery.of(context).size.center(Offset.zero);
     double scaleRatio = -event.scrollDelta.dy / center.dy;
 
@@ -371,6 +368,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 处理缩放移动开始事件
   void _handleOnScaleStart(ScaleStartDetails details) {
+    print('FlutterPainter1 _handleOnScaleStart');
     _tmpFocal = details.focalPoint;
     // 有选中文字处理选中文字
     if (_tempEdit != null && _tempEdit.selected) {
@@ -378,14 +376,16 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       _tmpMoveY = _tempEdit.offset.dy;
       _tmpScale = _tempEdit.scale;
     } else {
-      _tmpMoveX = is90 ? _moveY : _moveX;
-      _tmpMoveY = is90 ? _moveX : _moveY;
+      _tmpMoveX = _moveX;
+      _tmpMoveY = _moveY;
       _tmpScale = _scale;
     }
   }
 
   /// 处理缩放移动更新事件
   void _handleOnScaleUpdate(ScaleUpdateDetails details) {
+    print('FlutterPainter1 _handleOnScaleUpdate');
+
     /// 计算运动距离
     double focalMoveX = (details.focalPoint.dx - _tmpFocal.dx);
     double focalMoveY = (details.focalPoint.dy - _tmpFocal.dy);
