@@ -11,6 +11,7 @@ class DrawBorad extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     canvas.saveLayer(Rect.largest, Paint());
+    canvas.clipRect(Rect.fromLTWH(0, 0, size.width, size.height));
     for (var draw in drawBoradListenable.drawList) {
       draw.draw(canvas, size);
     }
