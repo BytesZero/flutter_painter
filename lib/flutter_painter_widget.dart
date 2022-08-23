@@ -153,8 +153,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       newHeight = newHeight * bgScale;
     }
     _painterSize = Size(newWidth, newHeight);
-    print(
-        'FlutterPainter size ${MediaQuery.of(context).size} newWidth $newWidth newHeight $newHeight');
     return Scaffold(
       key: _drawBoradKey,
       body: Listener(
@@ -197,7 +195,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
             _tempTapDownDetails = null;
           },
           onScaleStart: (details) {
-            print('FlutterPainter onScaleStart ${details.toString()}');
             if (boradMode == BoradMode.Zoom || boradMode == BoradMode.Edit) {
               _handleOnScaleStart(details);
             } else {
@@ -280,7 +277,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 鼠标滚轮事件
   void _onPointerScroll(PointerScrollEvent event) {
-    print('FlutterPainter1 _onPointerScroll');
     Offset center = MediaQuery.of(context).size.center(Offset.zero);
     double scaleRatio = -event.scrollDelta.dy / center.dy;
 
@@ -321,7 +317,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   /// 处理点击事件
   void _handleOnTap() {
     Offset lp = _tempTapDownDetails!.localPosition;
-    lp = _getNewPoint(lp);
+    lp = getNewPoint(lp);
     if (_tempEdit != null) {
       // 计算删除区域
       double delRadius = _tempEdit.delRadius;
@@ -374,7 +370,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 处理缩放移动开始事件
   void _handleOnScaleStart(ScaleStartDetails details) {
-    print('FlutterPainter1 _handleOnScaleStart');
     _tmpFocal = details.focalPoint;
     // 有选中文字处理选中文字
     if (_tempEdit != null && _tempEdit.selected) {
@@ -390,14 +385,11 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 处理缩放移动更新事件
   void _handleOnScaleUpdate(ScaleUpdateDetails details) {
-    print('FlutterPainter1 _handleOnScaleUpdate');
-
-    /// 计算运动距离
+    // 计算运动距离
     double focalMoveX = (details.focalPoint.dx - _tmpFocal.dx);
     double focalMoveY = (details.focalPoint.dy - _tmpFocal.dy);
     double newScale = _tmpScale! * details.scale;
-
-    /// 有选中文字处理选中文字
+    // 有选中文字处理选中文字
     if (_tempEdit != null && _tempEdit.selected) {
       double textMoveX = _tmpMoveX! + focalMoveX / _scale;
       double textMoveY = _tmpMoveY! + focalMoveY / _scale;
@@ -428,7 +420,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 处理滑动更新事件
   void _handleOnPanUpdate(Offset point) {
-    Offset newPoint = _getNewPoint(point);
+    Offset newPoint = getNewPoint(point);
     if (_tempLine == null) {
       _handleOnPanStart(newPoint);
     } else {
@@ -438,7 +430,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   }
 
   /// 获取新的坐标点
-  Offset _getNewPoint(Offset point) {
+  Offset getNewPoint(Offset point) {
     _boradSize =
         _drawBoradKey.currentContext?.size ?? MediaQuery.of(context).size;
     _painterSize = _drawToImageKey.currentContext?.size ?? Size.zero;
@@ -452,10 +444,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     Offset newPoint = (point + diffOffset) / scale;
     // 添加移动产生的偏移量
     newPoint = newPoint - Offset(moveX, moveY) * 2;
-    print(
-        'FlutterPainter _handleOnPanUpdate: _boradSize:$_boradSize rect: $rect ,newRect:$newRect,diffOffset:$diffOffset , point: $point, newPoint: $newPoint');
-    print(
-        'FlutterPainter _handleOnPanUpdate: $point -> $newPoint moveX: $_moveX moveY: $_moveY scale: $_scale');
     return newPoint;
   }
 
@@ -628,14 +616,11 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   // 获取为图片
   Future<Uint8List> getImage({double pixelRatio = 1}) async {
-    /// 恢复到默认状态
+    // 恢复到默认状态
     resetParams();
     await Future.delayed(Duration(milliseconds: 300));
 
-    print(
-        'FlutterPainter getImage size:${_drawToImageKey.currentContext?.size}');
-
-    /// 开始保存图片
+    // 开始保存图片
     RenderRepaintBoundary boundary = _drawToImageKey.currentContext!
         .findRenderObject() as RenderRepaintBoundary;
     ui.Image image = await boundary.toImage(pixelRatio: pixelRatio);
