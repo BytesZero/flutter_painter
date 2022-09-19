@@ -106,6 +106,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   var _tempEdit;
   // 点击添加绘制内容
   var _clickAddDraw;
+  dynamic get clickAddDraw => _clickAddDraw;
   // 临时按下事件记录，防止事件错乱
   TapUpDetails? _tempTapUpDetails;
   // 画板页面大小
