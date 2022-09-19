@@ -170,7 +170,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
         },
         onPointerHover: (event) {},
         onPointerMove: (event) {
-          debugPrint('onPointerMove ${event.toStringFull()}');
+          debugPrint(
+              'FlutterPainterWidget onPointerMove ${event.toStringFull()}');
           if (boradMode == BoradMode.Draw) {
             _handleOnPanUpdate(event.localPosition);
           }
@@ -312,7 +313,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     Offset lp = _tempTapDownDetails!.localPosition;
     lp = getNewPoint(lp);
     // 如果有点击添加的内容，则添加到画板中
-    if (_clickAddDraw != null) {
+    if (_clickAddDraw != null && boradMode == BoradMode.Draw) {
       var newClickDraw = _clickAddDraw.copy();
       Size drawSize = newClickDraw.drawSize;
       newClickDraw.offset =

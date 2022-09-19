@@ -8,7 +8,7 @@ class DrawLine extends BaseLine with DrawEdit implements Copyable<DrawLine> {
 
   @override
   void draw(Canvas canvas, Size size) {
-    if (linePath.isEmpty) {
+    if (linePath.length < 2) {
       return;
     }
     // 设置画笔
