@@ -107,7 +107,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   // 点击添加绘制内容
   var _clickAddDraw;
   // 临时按下事件记录，防止事件错乱
-  TapDownDetails? _tempTapDownDetails;
+  TapUpDetails? _tempTapUpDetails;
   // 画板页面大小
   Size? _boradSize;
   Size get boradSize =>
@@ -163,6 +163,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
         },
         onPointerUp: (event) {
           _onPointerUp(event.buttons);
+          // 这里是解决点击后再绘制会从点击的那个点开始绘制的问题，最终效果是多出一段距离来
+          _tempLine = null;
         },
         onPointerCancel: (event) {
           // 这个回调彻底解决手指数异常的问题
@@ -183,18 +185,15 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
         },
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTapDown: (details) {
-            // 设置按下事件信息
-            _tempTapDownDetails = details;
-          },
+          onTapDown: (details) {},
           onTapUp: (details) {
-            /// 这里是解决点击后再绘制会从点击的那个点开始绘制的问题，最终效果是多出一段距离来
-            _tempLine = null;
+            // 设置按下事件信息
+            _tempTapUpDetails = details;
           },
           onTap: () {
             _handleOnTap();
             // 清空按下信息，方式错误绘制
-            _tempTapDownDetails = null;
+            _tempTapUpDetails = null;
           },
           onScaleStart: (details) {
             if (boradMode == BoradMode.Zoom || boradMode == BoradMode.Edit) {
@@ -208,7 +207,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
           },
           onScaleEnd: (details) {
             _tempLine = null;
-            _tempTapDownDetails = null;
+            _tempTapUpDetails = null;
           },
           child: Center(
             child: SizedBox(
@@ -310,7 +309,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 处理点击事件
   void _handleOnTap() {
-    Offset lp = _tempTapDownDetails!.localPosition;
+    Offset lp = _tempTapUpDetails!.localPosition;
     lp = getNewPoint(lp);
     // 如果有点击添加的内容，则添加到画板中
     if (_clickAddDraw != null && boradMode == BoradMode.Draw) {
