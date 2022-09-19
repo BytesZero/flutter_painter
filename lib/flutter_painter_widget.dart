@@ -169,7 +169,12 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
           _onPointerUp(event.buttons);
         },
         onPointerHover: (event) {},
-        onPointerMove: (event) {},
+        onPointerMove: (event) {
+          debugPrint('onPointerMove ${event.toStringFull()}');
+          if (boradMode == BoradMode.Draw) {
+            _handleOnPanUpdate(event.localPosition);
+          }
+        },
         onPointerSignal: (event) {
           if (event is PointerScrollEvent) {
             _onPointerScroll(event);
@@ -180,12 +185,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
           onTapDown: (details) {
             // 设置按下事件信息
             _tempTapDownDetails = details;
-            // 如果橡皮擦，则按下就开始擦除
-            if (_isEraseMode) {
-              _handleOnPanUpdate(details.localPosition);
-              _handleOnPanUpdate(
-                  details.localPosition.translate(_eraseWidth, 0));
-            }
           },
           onTapUp: (details) {
             /// 这里是解决点击后再绘制会从点击的那个点开始绘制的问题，最终效果是多出一段距离来
@@ -199,19 +198,11 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
           onScaleStart: (details) {
             if (boradMode == BoradMode.Zoom || boradMode == BoradMode.Edit) {
               _handleOnScaleStart(details);
-            } else {
-              // 处理按下事件到滑动事件的过渡阶段的距离
-              if (_tempTapDownDetails != null) {
-                _handleOnPanUpdate(_tempTapDownDetails!.localPosition);
-              }
-              _handleOnPanUpdate(details.localFocalPoint);
             }
           },
           onScaleUpdate: (details) {
             if (boradMode == BoradMode.Zoom || boradMode == BoradMode.Edit) {
               _handleOnScaleUpdate(details);
-            } else {
-              _handleOnPanUpdate(details.localFocalPoint);
             }
           },
           onScaleEnd: (details) {
