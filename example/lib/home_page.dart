@@ -24,7 +24,7 @@ class _HomePageState extends State<HomePage> {
   String imageUrl4 =
       'https://img.banjixiaoguanjia.com/app_image_5f2f7aab74eab167730f6b26_cos/8613979fa6193571e9373c936c4a363a_1660298899331.jpg?1660879803667';
   String imageUrl5 =
-      'https://img.banjixiaoguanjia.com/app_image_5f2f7aab74eab167730f6b26_cos/03c5035b0cacba18b992260f4b8e5be6_1660298900012.jpg?1660879803667';
+      'https://allsystemfile.oss-cn-beijing.aliyuncs.com/app/images/pigai_01.webp';
   //选择颜色
   Color selectColor = Colors.red;
   // 颜色列表
@@ -70,6 +70,9 @@ class _HomePageState extends State<HomePage> {
   double? width;
   double? height;
 
+  // String 当前选中的图片
+  String? selectImg;
+
   @override
   void initState() {
     super.initState();
@@ -112,7 +115,7 @@ class _HomePageState extends State<HomePage> {
               width: width,
               height: height,
               background: Image.network(
-                imageUrl1,
+                imageUrl5,
                 fit: BoxFit.cover,
                 key: imgKey,
               ),
@@ -328,17 +331,29 @@ class _HomePageState extends State<HomePage> {
                     children: imageList.map((img) {
                       return GestureDetector(
                         onTap: () {
-                          Offset center = getCurrentCenterOffset();
-                          painterKey.currentState!.addImageAsset(
-                            imgPath: img,
-                            offset: center.translate(-60, -60),
-                            drawSize: Size(120, 120),
-                          );
+                          if (img != this.selectImg) {
+                            this.selectImg = img;
+                            addImg(this.selectImg);
+                          } else {
+                            this.selectImg = null;
+                            painterKey.currentState!.setClickAddDraw(null);
+                          }
+                          setState(() {});
                         },
-                        child: Image.asset(
-                          img,
-                          width: 40,
-                          height: 40,
+                        child: Container(
+                          padding: EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                                color: this.selectImg == img
+                                    ? Colors.white
+                                    : Colors.transparent,
+                                width: 1),
+                          ),
+                          child: Image.asset(
+                            img,
+                            width: 40,
+                            height: 40,
+                          ),
                         ),
                       );
                     }).toList(),
@@ -392,6 +407,20 @@ class _HomePageState extends State<HomePage> {
           ..color = textColor;
       }
     }
+  }
+
+  // 添加图片
+  Future<void> addImg(String? img) async {
+    if (img?.isEmpty ?? true) {
+      return;
+    }
+    painterKey.currentState!.addImageAsset(
+      imgPath: img!,
+      offset: Offset.zero,
+      drawSize: Size(60, 60),
+      selected: false,
+      clickAdd: true,
+    );
   }
 
   // 保存为图片

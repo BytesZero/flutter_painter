@@ -1,8 +1,9 @@
+import '../common/copyable.dart';
 import 'base_line.dart';
 import 'draw_edit.dart';
 
 /// 绘制线
-class DrawLine extends BaseLine with DrawEdit {
+class DrawLine extends BaseLine with DrawEdit implements Copyable<DrawLine> {
   Color color = Color(0xFFFFFFFF); // 颜色
 
   @override
@@ -43,5 +44,13 @@ class DrawLine extends BaseLine with DrawEdit {
     // 绘制编辑
     rect = path.getBounds().inflate(6);
     drawEdit(canvas, paint);
+  }
+
+  @override
+  DrawLine copy() {
+    var newCopy = DrawLine()..color = color;
+    super.copyBaseDraw(newCopy);
+    super.copyEdit(newCopy);
+    return newCopy;
   }
 }

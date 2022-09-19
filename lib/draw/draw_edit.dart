@@ -46,4 +46,15 @@ mixin DrawEdit {
       );
     }
   }
+
+  /// 拷贝现有对象属性到新对象上
+  /// [newEdit] 新编辑对象
+  DrawEdit copyEdit(DrawEdit newEdit) {
+    newEdit
+      ..scale = scale
+      ..selected = selected
+      ..delRadius = delRadius
+      ..enable = enable;
+    return newEdit;
+  }
 }

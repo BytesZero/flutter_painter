@@ -1,8 +1,9 @@
+import '../common/copyable.dart';
 import 'base_draw.dart';
 import 'draw_edit.dart';
 
 /// 绘制文字
-class DrawText extends BaseDraw with DrawEdit {
+class DrawText extends BaseDraw with DrawEdit implements Copyable<DrawText> {
   String? text; // 文字
   Color color = Color(0xFFFFFFFF); // 颜色
   double fontSize = 14; // 文字大小
@@ -44,5 +45,16 @@ class DrawText extends BaseDraw with DrawEdit {
     drawEdit(canvas, paint);
     // 回退
     canvas.restore();
+  }
+
+  @override
+  DrawText copy() {
+    var newCopy = DrawText()
+      ..text = text
+      ..color = color
+      ..fontSize = fontSize;
+    super.copyBaseDraw(newCopy);
+    super.copyEdit(newCopy);
+    return newCopy;
   }
 }

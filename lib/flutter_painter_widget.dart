@@ -104,6 +104,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   BaseLine? _tempLine;
   // 临时编辑内容，标记选中赋值
   var _tempEdit;
+  // 点击添加绘制内容
+  var _clickAddDraw;
   // 临时按下事件记录，防止事件错乱
   TapDownDetails? _tempTapDownDetails;
   // 画板页面大小
@@ -318,7 +320,16 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   void _handleOnTap() {
     Offset lp = _tempTapDownDetails!.localPosition;
     lp = getNewPoint(lp);
-    if (_tempEdit != null) {
+    // 如果有点击添加的内容，则添加到画板中
+    if (_clickAddDraw != null) {
+      var newClickDraw = _clickAddDraw.copy();
+      Size drawSize = newClickDraw.drawSize;
+      newClickDraw.offset =
+          lp.translate(-drawSize.width / 2, -drawSize.height / 2);
+      drawBoradListenable.add(newClickDraw);
+      return;
+    }
+    if (_tempEdit != null && _tempEdit is DrawEdit) {
       // 计算删除区域
       double delRadius = _tempEdit.delRadius;
       Rect tempRect = _tempEdit.rect;
@@ -487,6 +498,10 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   /// 添加图片
   /// [image] 绘制图片
   void addImage(DrawImage image) {
+    if (image.clickAdd) {
+      setClickAddDraw(image);
+      return;
+    }
     drawBoradListenable.add(image);
     if (image.selected) {
       // 去掉原有的选中状态
@@ -505,7 +520,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       required Offset offset,
       Size? drawSize,
       double scale = 1.0,
-      bool selected = true}) async {
+      bool selected = true,
+      bool clickAdd = false}) async {
     // 获取图片数据
     ByteData data = await rootBundle.load(imgPath);
     Uint8List bytes =
@@ -519,8 +535,15 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
         ..offset = offset
         ..selected = selected
         ..drawSize = drawSize
-        ..scale = scale,
+        ..scale = scale
+        ..clickAdd = clickAdd,
     );
+  }
+
+  /// 设置点击添加内容
+  /// [draw] 绘制组件
+  void setClickAddDraw(dynamic draw) {
+    _clickAddDraw = draw;
   }
 
   /// 设置旋转角度
@@ -540,8 +563,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   /// 获取新的缩放大小
   /// [newScale] 缩放大小
   double getNewScale(double newScale) {
-    if (newScale > 3.0) {
-      newScale = 3.0;
+    if (newScale > 5.0) {
+      newScale = 5.0;
     } else if (newScale < 0.5) {
       newScale = 0.5;
     }

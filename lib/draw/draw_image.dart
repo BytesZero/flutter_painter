@@ -1,10 +1,11 @@
 import 'dart:ui';
 
+import '../common/copyable.dart';
 import 'base_draw.dart';
 import 'draw_edit.dart';
 
 /// 绘制图片
-class DrawImage extends BaseDraw with DrawEdit {
+class DrawImage extends BaseDraw with DrawEdit implements Copyable<DrawImage> {
   Image? image; // 图片
 
   @override
@@ -45,5 +46,13 @@ class DrawImage extends BaseDraw with DrawEdit {
       // 绘制编辑
       drawEdit(canvas, paint);
     }
+  }
+
+  @override
+  DrawImage copy() {
+    var newCopy = DrawImage()..image = image;
+    super.copyBaseDraw(newCopy);
+    super.copyEdit(newCopy);
+    return newCopy;
   }
 }
