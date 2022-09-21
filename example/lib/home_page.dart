@@ -25,6 +25,8 @@ class _HomePageState extends State<HomePage> {
       'https://img.banjixiaoguanjia.com/app_image_5f2f7aab74eab167730f6b26_cos/8613979fa6193571e9373c936c4a363a_1660298899331.jpg?1660879803667';
   String imageUrl5 =
       'https://allsystemfile.oss-cn-beijing.aliyuncs.com/app/images/pigai_01.webp';
+  String imageUrl6 =
+      'https://img-1302562365.cos.ap-beijing.myqcloud.com/11oWRkU0Q---6Fc4JV1x8iwptt_YD4_img%2F15F5_cos%402400.jpg';
   //选择颜色
   Color selectColor = Colors.red;
   // 颜色列表
@@ -86,6 +88,9 @@ class _HomePageState extends State<HomePage> {
     if (size != null && size.width > 0 && size.height > 0) {
       width = size.width;
       height = size.height;
+      double moveY = height! * 0.5 / 1.5 / 2;
+      painterKey.currentState?.setMove(0, moveY);
+      print('放大111===>$moveY');
       setState(() {});
     } else {
       getAbsoluteSize();
@@ -102,6 +107,10 @@ class _HomePageState extends State<HomePage> {
     return is90 ? Size(height!, width!) : Size(width!, height!);
   }
 
+  void initScale() {
+    // painterKey.currentState?.setMove(0, marginTop);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -114,8 +123,10 @@ class _HomePageState extends State<HomePage> {
               key: painterKey,
               width: width,
               height: height,
+              mouseScrollZoom: false,
+              scale: 1.5,
               background: Image.network(
-                imageUrl5,
+                imageUrl6,
                 fit: BoxFit.cover,
                 key: imgKey,
               ),
@@ -307,6 +318,37 @@ class _HomePageState extends State<HomePage> {
                           heroTag: 'text',
                           onPressed: () {
                             showEditTextDialog();
+                          },
+                        ),
+                        SizedBox(width: 2),
+                        FloatingActionButton(
+                          child: Icon(Icons.zoom_in),
+                          tooltip: '放大',
+                          heroTag: 'zoom_in',
+                          onPressed: () {
+                            double newScale =
+                                painterKey.currentState!.scale + 0.5;
+                            painterKey.currentState?.setScale(newScale);
+                            if (newScale > 1) {
+                              double marginTop =
+                                  (height ?? 0) * (newScale - 1) / newScale / 2;
+                              print('放大===>$marginTop');
+                              painterKey.currentState?.setMove(0, marginTop);
+                            }
+                          },
+                        ),
+                        SizedBox(width: 2),
+                        FloatingActionButton(
+                          child: Icon(Icons.zoom_out),
+                          tooltip: '缩小',
+                          heroTag: 'zoom_out',
+                          onPressed: () {
+                            double newScale =
+                                painterKey.currentState!.scale - 0.5;
+                            painterKey.currentState?.setScale(newScale);
+                            if (newScale <= 1) {
+                              painterKey.currentState?.setMove(0, 0);
+                            }
                           },
                         ),
                       ],

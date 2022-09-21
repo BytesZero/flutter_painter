@@ -24,9 +24,13 @@ class FlutterPainterWidget extends StatefulWidget {
     this.height,
     this.brushColor,
     this.brushWidth,
+    this.scale,
+    this.moveX,
+    this.moveY,
     this.onTapText,
     this.onPointerCount,
     this.enableLineEdit = true,
+    this.mouseScrollZoom = false,
   }) : super(key: key);
   // 背景 Widget
   final Widget background;
@@ -38,8 +42,16 @@ class FlutterPainterWidget extends StatefulWidget {
   final Color? brushColor;
   // 画笔粗细
   final double? brushWidth;
+  // 缩放
+  final double? scale;
+  // 移动x
+  final double? moveX;
+  // 移动x
+  final double? moveY;
   // 启用线的编辑
   final bool enableLineEdit;
+  // 鼠标滚动为缩放或移动
+  final bool mouseScrollZoom;
   // 文字编辑点击
   final ValueChanged<DrawText>? onTapText;
   // 手指按下数量变化监听
@@ -126,6 +138,17 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     if (widget.brushWidth != null) {
       _brushWidth = widget.brushWidth!;
     }
+    // 获取缩放
+    if (widget.scale != null) {
+      _scale = widget.scale!;
+    }
+    // 获取移动
+    if (widget.moveX != null) {
+      _moveX = widget.moveX!;
+    }
+    if (widget.moveY != null) {
+      _moveY = widget.moveY!;
+    }
     // 禁用默认的右键事件处理
     disableRightClick();
     super.initState();
@@ -144,9 +167,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    _matrix4 = Matrix4.identity()
-      ..scale(_scale, _scale)
-      ..translate(_moveX, _moveY);
+    // 获取画布大小
     double newWidth = widget.width ?? double.infinity;
     double newHeight = widget.height ?? double.infinity;
     if (widget.width != null && widget.height != null) {
@@ -156,6 +177,10 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       newHeight = newHeight * bgScale;
     }
     _painterSize = Size(newWidth, newHeight);
+    // 计算矩阵
+    _matrix4 = Matrix4.identity()
+      ..scale(_scale, _scale)
+      ..translate(_moveX, _moveY);
     return Scaffold(
       key: _drawBoradKey,
       body: Listener(
@@ -173,8 +198,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
         },
         onPointerHover: (event) {},
         onPointerMove: (event) {
-          debugPrint(
-              'FlutterPainterWidget onPointerMove ${event.toStringFull()}');
           if (boradMode == BoradMode.Draw) {
             _handleOnPanUpdate(event.localPosition);
           }
@@ -273,23 +296,20 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   void _onPointerScroll(PointerScrollEvent event) {
     Offset center = MediaQuery.of(context).size.center(Offset.zero);
     double scaleRatio = -event.scrollDelta.dy / center.dy;
-
-    /// 有选中文字处理选中文字
+    // 有选中文字处理选中文字
     if (_tempEdit != null && _tempEdit.selected) {
       _tempEdit.scale = getNewScale(_tempEdit.scale + scaleRatio);
       drawBoradListenable.update();
     } else {
-      double newScale = scale + scaleRatio;
-      double newMoveX = (center.dx - event.position.dx) / newScale;
-      double newMoveY = (center.dy - event.position.dy) / newScale;
-      // if (newScale > 1.0) {
-      //   _moveX = newMoveX * (newScale - 0.8);
-      //   _moveY = newMoveY * (newScale - 0.8);
-      // } else {
-      //   _moveX = newMoveX * (newScale - 0.5).clamp(0.0, 0.5);
-      //   _moveY = newMoveY * (newScale - 0.5).clamp(0.0, 0.5);
-      // }
-      setScale(newScale);
+      if (widget.mouseScrollZoom) {
+        // 缩放
+        double newScale = scale + scaleRatio;
+        setScale(newScale);
+      } else {
+        // 移动
+        _moveY -= event.scrollDelta.dy;
+        setState(() {});
+      }
     }
   }
 
