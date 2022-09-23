@@ -198,6 +198,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
         },
         onPointerHover: (event) {},
         onPointerMove: (event) {
+          print('onPointerMove==>${event.toStringFull()}');
           if (boradMode == BoradMode.Draw) {
             _handleOnPanUpdate(event.localPosition);
           }
@@ -447,6 +448,10 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     if (_tempLine == null) {
       _handleOnPanStart(newPoint);
     } else {
+      // 如果最后一个是相同的点就不添加了
+      if (_tempLine!.linePath.last == newPoint) {
+        return;
+      }
       _tempLine!.linePath.add(newPoint);
       drawBoradListenable.setLast(_tempLine!);
     }

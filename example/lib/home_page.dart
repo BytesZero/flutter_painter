@@ -52,6 +52,8 @@ class _HomePageState extends State<HomePage> {
 
   // 图片资源列表
   List<String> imageList = [
+    'assets/icons/icon_success.png',
+    'assets/icons/icon_error.png',
     'assets/icons/icon_shoubiao.png',
     'assets/icons/icon_coffe.png',
     'assets/icons/icon_bangbangtang.png',
