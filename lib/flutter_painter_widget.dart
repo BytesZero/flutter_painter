@@ -654,11 +654,14 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     setState(() {});
   }
 
-  // 获取为图片
-  Future<Uint8List> getImage({double pixelRatio = 1}) async {
+  /// 获取为图片
+  /// [pixelRatio]分辨率
+  /// [delayed] 等待时长
+  Future<Uint8List> getImage({double pixelRatio = 1, int delayed = 100}) async {
     // 恢复到默认状态
     resetParams();
-    await Future.delayed(Duration(milliseconds: 300));
+    // 这里是为了防止图片生成不了
+    await Future.delayed(Duration(milliseconds: delayed));
 
     // 开始保存图片
     RenderRepaintBoundary boundary = _drawToImageKey.currentContext!
