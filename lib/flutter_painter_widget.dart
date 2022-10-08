@@ -333,15 +333,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   void _handleOnTap() {
     Offset lp = _tempTapUpDetails!.localPosition;
     lp = getNewPoint(lp);
-    // 如果有点击添加的内容，则添加到画板中
-    if (_clickAddDraw != null && boradMode == BoradMode.Draw) {
-      var newClickDraw = _clickAddDraw.copy();
-      Size drawSize = newClickDraw.drawSize;
-      newClickDraw.offset =
-          lp.translate(-drawSize.width / 2, -drawSize.height / 2);
-      drawBoradListenable.add(newClickDraw);
-      return;
-    }
     if (_tempEdit != null && _tempEdit is DrawEdit) {
       // 计算删除区域
       double delRadius = _tempEdit.delRadius;
@@ -359,14 +350,18 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       }
     }
     // 仅获取可编辑内容
-    var editList = drawBoradListenable.drawList
-        .whereType<DrawEdit>()
-        .where((drawItem) => !((drawItem is DrawLine) && !drawItem.enable));
+    var editList = drawBoradListenable.drawList.whereType<DrawEdit>().where(
+        (drawItem) => !((drawItem is DrawLine) &&
+            !drawItem.enable &&
+            drawItem.rect != null));
     // 遍历查看是否命中事件
     for (var item in editList) {
-      Rect textRect = item.rect;
+      Rect? editRect = item.rect;
+      if (editRect == null) {
+        continue;
+      }
       //计算是否命中事件
-      if (textRect.contains(lp)) {
+      if (editRect.contains(lp)) {
         // 命中的是上次命中的，那么触发编辑
         if (item.selected) {
           // 二次命中触发文字编辑
@@ -389,6 +384,15 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
         _boradMode = BoradMode.Draw;
         _pointerCount = 0;
       }
+    }
+    // 如果有点击添加的内容，则添加到画板中
+    if (_clickAddDraw != null && boradMode == BoradMode.Draw) {
+      var newClickDraw = _clickAddDraw.copy();
+      Size drawSize = newClickDraw.drawSize;
+      newClickDraw.offset =
+          lp.translate(-drawSize.width / 2, -drawSize.height / 2);
+      drawBoradListenable.add(newClickDraw);
+      return;
     }
   }
 
