@@ -354,6 +354,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
         (drawItem) => !((drawItem is DrawLine) &&
             !drawItem.enable &&
             drawItem.rect != null));
+    // 是否为取消选中
+    bool cancelEdit = false;
     // 遍历查看是否命中事件
     for (var item in editList) {
       Rect? editRect = item.rect;
@@ -379,6 +381,10 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
         _boradMode = BoradMode.Edit;
         break;
       } else {
+        // 选中状态变为不选中则认定为取消选中状态
+        if (item.selected) {
+          cancelEdit = true;
+        }
         // 未命中，不选中
         drawBoradListenable.setSelect(item, false);
         _boradMode = BoradMode.Draw;
@@ -386,7 +392,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       }
     }
     // 如果有点击添加的内容，则添加到画板中
-    if (_clickAddDraw != null && boradMode == BoradMode.Draw) {
+    if (_clickAddDraw != null && boradMode == BoradMode.Draw && !cancelEdit) {
       var newClickDraw = _clickAddDraw.copy();
       Size drawSize = newClickDraw.drawSize;
       newClickDraw.offset =
