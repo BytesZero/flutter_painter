@@ -80,6 +80,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   double _moveY = 0.0;
   double get moveY => _moveY;
   double? _tmpMoveY = 0.0;
+  Rect? _tmpRect = Rect.zero;
   double _bgRotation = 0.0;
   // 获取旋转角度
   double get backgroundRotation => _bgRotation;
@@ -116,6 +117,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   BaseLine? _tempLine;
   // 临时编辑内容，标记选中赋值
   var _tempEdit;
+  // 编辑内容当前状态为移动
+  bool tempEditMove = true;
   // 点击添加绘制内容
   var _clickAddDraw;
   dynamic get clickAddDraw => _clickAddDraw;
@@ -129,6 +132,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       MediaQuery.of(context).size;
   // 画布页面大小
   Size? _painterSize;
+  // 鼠标效果
+  MouseCursor cursor = MouseCursor.defer;
   @override
   void initState() {
     /// 设置默认
@@ -196,9 +201,12 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
           // 这个回调彻底解决手指数异常的问题
           _onPointerUp(event.buttons);
         },
-        onPointerHover: (event) {},
+        onPointerHover: (event) {
+          print('FlutterPainter onPointerHover==>${event.localPosition}');
+          // print('FlutterPainter onPointerHover==>${event.toStringFull()}');
+          _onPointerHover(event);
+        },
         onPointerMove: (event) {
-          print('onPointerMove==>${event.toStringFull()}');
           if (boradMode == BoradMode.Draw) {
             _handleOnPanUpdate(event.localPosition);
           }
@@ -208,55 +216,58 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
             _onPointerScroll(event);
           }
         },
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTapDown: (details) {},
-          onTapUp: (details) {
-            // 设置按下事件信息
-            _tempTapUpDetails = details;
-          },
-          onTap: () {
-            _handleOnTap();
-            // 清空按下信息，方式错误绘制
-            _tempTapUpDetails = null;
-          },
-          onScaleStart: (details) {
-            if (boradMode == BoradMode.Zoom || boradMode == BoradMode.Edit) {
-              _handleOnScaleStart(details);
-            }
-          },
-          onScaleUpdate: (details) {
-            if (boradMode == BoradMode.Zoom || boradMode == BoradMode.Edit) {
-              _handleOnScaleUpdate(details);
-            }
-          },
-          onScaleEnd: (details) {
-            _tempLine = null;
-            _tempTapUpDetails = null;
-          },
-          child: Center(
-            child: SizedBox(
-              width: newWidth,
-              height: newHeight,
-              child: RepaintBoundary(
-                key: _drawToImageKey,
-                child: Transform(
-                  transform: _matrix4,
-                  alignment: FractionalOffset.center,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      RotatedBox(
-                        quarterTurns: _bgRotation ~/ (pi / 2),
-                        child: widget.background,
-                      ),
-                      RepaintBoundary(
-                        child: CustomPaint(
-                          size: Size.infinite,
-                          painter: DrawBorad(drawBoradListenable),
+        child: MouseRegion(
+          cursor: cursor,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTapDown: (details) {},
+            onTapUp: (details) {
+              // 设置按下事件信息
+              _tempTapUpDetails = details;
+            },
+            onTap: () {
+              _handleOnTap();
+              // 清空按下信息，方式错误绘制
+              _tempTapUpDetails = null;
+            },
+            onScaleStart: (details) {
+              if (boradMode == BoradMode.Zoom || boradMode == BoradMode.Edit) {
+                _handleOnScaleStart(details);
+              }
+            },
+            onScaleUpdate: (details) {
+              if (boradMode == BoradMode.Zoom || boradMode == BoradMode.Edit) {
+                _handleOnScaleUpdate(details);
+              }
+            },
+            onScaleEnd: (details) {
+              _tempLine = null;
+              _tempTapUpDetails = null;
+            },
+            child: Center(
+              child: SizedBox(
+                width: newWidth,
+                height: newHeight,
+                child: RepaintBoundary(
+                  key: _drawToImageKey,
+                  child: Transform(
+                    transform: _matrix4,
+                    alignment: FractionalOffset.center,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        RotatedBox(
+                          quarterTurns: _bgRotation ~/ (pi / 2),
+                          child: widget.background,
                         ),
-                      ),
-                    ],
+                        RepaintBoundary(
+                          child: CustomPaint(
+                            size: Size.infinite,
+                            painter: DrawBorad(drawBoradListenable),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -291,6 +302,39 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     if (_pointerCount < 1) {
       _switchBoradMode(buttons);
     }
+  }
+
+  /// 鼠标悬停事件
+  void _onPointerHover(PointerHoverEvent event) {
+    if (boradMode == BoradMode.Edit) {
+      Offset lp = event.localPosition;
+      _handleEditMouseCursor(lp);
+    }
+  }
+
+  /// 处理缩放和移动的切换以及鼠标状态
+  void _handleEditMouseCursor(Offset offset) {
+    Offset newOffset = getNewPoint(offset);
+    cursor = MouseCursor.defer;
+    if (_tempEdit != null && _tempEdit is DrawEdit && _tempEdit.selected) {
+      if (_tempEdit.rect.contains(newOffset)) {
+        cursor = SystemMouseCursors.move;
+        tempEditMove = true;
+      }
+      // 计算拉伸区域
+      double delRadius = _tempEdit.delRadius;
+      Rect tempRect = _tempEdit.rect;
+      Rect delRect = Rect.fromCircle(
+        center: tempRect.bottomRight,
+        radius: delRadius,
+      );
+      // 编辑选中并且命中删除区域
+      if (delRect.contains(newOffset)) {
+        cursor = SystemMouseCursors.resizeDownRight;
+        tempEditMove = false;
+      }
+    }
+    setState(() {});
   }
 
   /// 鼠标滚轮事件
@@ -410,6 +454,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       _tmpMoveX = _tempEdit.offset.dx;
       _tmpMoveY = _tempEdit.offset.dy;
       _tmpScale = _tempEdit.scale;
+      _tmpRect = _tempEdit.rect;
+      _handleEditMouseCursor(_tmpFocal);
     } else {
       _tmpMoveX = _moveX;
       _tmpMoveY = _moveY;
@@ -425,10 +471,16 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     double newScale = _tmpScale! * details.scale;
     // 有选中文字处理选中文字
     if (_tempEdit != null && _tempEdit.selected) {
-      double textMoveX = _tmpMoveX! + focalMoveX / _scale;
-      double textMoveY = _tmpMoveY! + focalMoveY / _scale;
-      _tempEdit.offset = Offset(textMoveX, textMoveY);
-      _tempEdit.scale = getNewScale(newScale);
+      double editMoveX = _tmpMoveX! + focalMoveX / _scale;
+      double editMoveY = _tmpMoveY! + focalMoveY / _scale;
+      if (tempEditMove) {
+        _tempEdit.offset = Offset(editMoveX, editMoveY);
+      } else {
+        // 当前的移动距离/页面缩放/原始宽度+原始缩放=新缩放
+        newScale =
+            focalMoveX / _scale / (_tmpRect!.width / _tmpScale!) + _tmpScale!;
+        _tempEdit.scale = getNewScale(newScale);
+      }
       drawBoradListenable.update();
     } else {
       _moveX = _tmpMoveX! + focalMoveX / _tmpScale!;

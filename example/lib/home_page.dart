@@ -111,6 +111,7 @@ class _HomePageState extends State<HomePage> {
 
   void initScale() {
     // painterKey.currentState?.setMove(0, marginTop);
+    Colors.blue;
   }
 
   @override

@@ -29,12 +29,12 @@ mixin DrawEdit {
       ..color = Color(0xFFDDDDDD)
       ..style = PaintingStyle.fill;
     //画圆形背景
-    canvas.drawCircle(Offset(rect!.left, rect!.top), delRadius, paint);
+    canvas.drawCircle(Offset(rect!.left, rect!.top), delRadius / 1.5, paint);
     // 设置 X 画笔
     paint
       ..style = PaintingStyle.stroke
       ..color = Color(0xFF999999);
-    double xRadius = delRadius / 3.0;
+    double xRadius = delRadius / 4.0;
     // 画 X
     canvas.drawLine(
       Offset(rect!.left - xRadius, rect!.top - xRadius),
@@ -46,6 +46,28 @@ mixin DrawEdit {
       Offset(rect!.left - xRadius, rect!.top + xRadius),
       paint,
     );
+    // 设置缩放画笔
+    paint
+      ..color = Color(0xFFDDDDDD)
+      ..style = PaintingStyle.fill;
+    // 矩形背景
+    canvas.drawCircle(
+      Offset(rect!.right, rect!.bottom),
+      delRadius / 1.5,
+      paint,
+    );
+    // 绘制三角形
+    Path sanjiao = Path();
+    sanjiao
+      ..moveTo(rect!.bottomRight.dx + 1, rect!.bottomRight.dy + 1)
+      ..relativeLineTo(-0.5, -xRadius)
+      ..relativeLineTo(-xRadius + 0.5, xRadius - 0.5)
+      ..close();
+    // 设置 X 画笔
+    paint
+      ..style = PaintingStyle.stroke
+      ..color = Color(0xFF999999);
+    canvas.drawPath(sanjiao, paint);
   }
 
   /// 拷贝现有对象属性到新对象上
