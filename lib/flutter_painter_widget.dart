@@ -204,8 +204,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
           _onPointerUp(event.buttons);
         },
         onPointerHover: (event) {
-          print('FlutterPainter onPointerHover==>${event.localPosition}');
-          // print('FlutterPainter onPointerHover==>${event.toStringFull()}');
           _onPointerHover(event);
         },
         onPointerMove: (event) {
