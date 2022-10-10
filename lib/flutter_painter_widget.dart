@@ -122,6 +122,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   // 点击添加绘制内容
   var _clickAddDraw;
   dynamic get clickAddDraw => _clickAddDraw;
+  // 获取点击贴图的缩放大小
+  double get clickAddDrawScale => _clickAddDraw?.scale ?? 1.0;
   // 临时按下事件记录，防止事件错乱
   TapUpDetails? _tempTapUpDetails;
   // 画板页面大小
@@ -439,8 +441,9 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     if (_clickAddDraw != null && boradMode == BoradMode.Draw && !cancelEdit) {
       var newClickDraw = _clickAddDraw.copy();
       Size drawSize = newClickDraw.drawSize;
-      newClickDraw.offset =
-          lp.translate(-drawSize.width / 2, -drawSize.height / 2);
+      newClickDraw.offset = lp.translate(
+          -drawSize.width * clickAddDrawScale / 2,
+          -drawSize.height * clickAddDrawScale / 2);
       drawBoradListenable.add(newClickDraw);
       return;
     }
@@ -480,6 +483,11 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
         newScale =
             focalMoveX / _scale / (_tmpRect!.width / _tmpScale!) + _tmpScale!;
         _tempEdit.scale = getNewScale(newScale);
+        // 如果点击绘制有内容，则跟着缩放一下
+        if (clickAddDraw != null &&
+            clickAddDraw.runtimeType == _tempEdit.runtimeType) {
+          clickAddDraw.scale = getNewScale(newScale);
+        }
       }
       drawBoradListenable.update();
     } else {
