@@ -122,20 +122,31 @@ class _HomePageState extends State<HomePage> {
         ),
         body: Stack(
           children: [
-            FlutterPainterWidget(
-              key: painterKey,
-              width: width,
-              height: height,
-              mouseScrollZoom: false,
-              scale: 1.5,
-              background: Image.network(
-                imageUrl6,
-                fit: BoxFit.cover,
-                key: imgKey,
-              ),
-              onTapText: (item) {
-                showEditTextDialog(drawText: item);
-              },
+            Row(
+              children: [
+                Container(
+                  width: 160,
+                  height: height,
+                  color: Colors.red,
+                ),
+                Expanded(
+                  child: FlutterPainterWidget(
+                    key: painterKey,
+                    width: width,
+                    height: height,
+                    mouseScrollZoom: false,
+                    scale: 1.5,
+                    background: Image.network(
+                      imageUrl6,
+                      fit: BoxFit.cover,
+                      key: imgKey,
+                    ),
+                    onTapText: (item) {
+                      showEditTextDialog(drawText: item);
+                    },
+                  ),
+                )
+              ],
             ),
             Positioned(
               bottom: 0,

@@ -244,29 +244,31 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
               _tempLine = null;
               _tempTapUpDetails = null;
             },
-            child: Center(
-              child: SizedBox(
-                width: newWidth,
-                height: newHeight,
-                child: RepaintBoundary(
-                  key: _drawToImageKey,
-                  child: Transform(
-                    transform: _matrix4,
-                    alignment: FractionalOffset.center,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        RotatedBox(
-                          quarterTurns: _bgRotation ~/ (pi / 2),
-                          child: widget.background,
-                        ),
-                        RepaintBoundary(
-                          child: CustomPaint(
-                            size: Size.infinite,
-                            painter: DrawBorad(drawBoradListenable),
+            child: ClipRect(
+              child: Center(
+                child: SizedBox(
+                  width: newWidth,
+                  height: newHeight,
+                  child: RepaintBoundary(
+                    key: _drawToImageKey,
+                    child: Transform(
+                      transform: _matrix4,
+                      alignment: FractionalOffset.center,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          RotatedBox(
+                            quarterTurns: _bgRotation ~/ (pi / 2),
+                            child: widget.background,
                           ),
-                        ),
-                      ],
+                          RepaintBoundary(
+                            child: CustomPaint(
+                              size: Size.infinite,
+                              painter: DrawBorad(drawBoradListenable),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -343,8 +345,14 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     double scaleRatio = -event.scrollDelta.dy / center.dy;
     // 有选中文字处理选中文字
     if (_tempEdit != null && _tempEdit.selected) {
-      _tempEdit.scale = getNewScale(_tempEdit.scale + scaleRatio);
+      double newScale = _tempEdit.scale + scaleRatio;
+      _tempEdit.scale = getNewScale(newScale);
       drawBoradListenable.update();
+      // 如果点击绘制有内容，则跟着缩放一下
+      if (clickAddDraw != null &&
+          clickAddDraw.runtimeType == _tempEdit.runtimeType) {
+        clickAddDraw.scale = getNewScale(newScale);
+      }
     } else {
       if (widget.mouseScrollZoom) {
         // 缩放
