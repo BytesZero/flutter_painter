@@ -136,6 +136,7 @@ class _HomePageState extends State<HomePage> {
                     height: height,
                     mouseScrollZoom: false,
                     scale: 1.5,
+                    scrollSpeed: 0.2,
                     background: Image.network(
                       imageUrl6,
                       fit: BoxFit.cover,

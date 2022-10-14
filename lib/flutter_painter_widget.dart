@@ -27,6 +27,7 @@ class FlutterPainterWidget extends StatefulWidget {
     this.scale,
     this.moveX,
     this.moveY,
+    this.scrollSpeed = 1,
     this.onTapText,
     this.onPointerCount,
     this.enableLineEdit = true,
@@ -48,6 +49,8 @@ class FlutterPainterWidget extends StatefulWidget {
   final double? moveX;
   // 移动x
   final double? moveY;
+  // 鼠标滚动速度
+  final double scrollSpeed;
   // 启用线的编辑
   final bool enableLineEdit;
   // 鼠标滚动为缩放或移动
@@ -360,7 +363,12 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
         setScale(newScale);
       } else {
         // 移动
-        _moveY -= event.scrollDelta.dy;
+        double newMoveY = _moveY - event.scrollDelta.dy * widget.scrollSpeed;
+        // 限制移动的距离，不能出屏幕高度的一半
+        if (newMoveY.abs() > (_painterSize?.height ?? 0) / 2) {
+          return;
+        }
+        _moveY = newMoveY;
         setState(() {});
       }
     }
