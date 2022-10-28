@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_painter/flutter_painter.dart';
@@ -73,6 +75,8 @@ class _HomePageState extends State<HomePage> {
   // 宽高
   double? width;
   double? height;
+  // 当前加载的图片
+  ui.Image? loadImg;
 
   // String 当前选中的图片
   String? selectImg;
@@ -86,6 +90,21 @@ class _HomePageState extends State<HomePage> {
   /// 获取最终图片的大小来设置画布的大小
   void getAbsoluteSize() async {
     await Future.delayed(Duration(milliseconds: 1000));
+    // 获取组件
+    Image netImage = imgKey.currentWidget as Image;
+    // 获取图片大小
+    Completer<ImageInfo> completer = new Completer<ImageInfo>();
+    netImage.image.resolve(new ImageConfiguration()).addListener(
+      ImageStreamListener(
+        (ImageInfo image, bool synchronousCall) {
+          completer.complete(image);
+        },
+      ),
+    );
+
+    ImageInfo loadImgInfo = await completer.future;
+    loadImg = loadImgInfo.image;
+
     Size? size = imgKey.currentContext?.size;
     if (size != null && size.width > 0 && size.height > 0) {
       width = size.width;
@@ -97,7 +116,8 @@ class _HomePageState extends State<HomePage> {
     } else {
       getAbsoluteSize();
     }
-    print('FlutterPainter width: $width, height: $height');
+    print(
+        'FlutterPainter width: $width, height: $height scale:${loadImgInfo.scale}');
   }
 
   /// 获取图片大小
@@ -137,6 +157,7 @@ class _HomePageState extends State<HomePage> {
                     mouseScrollZoom: false,
                     scale: 1.5,
                     scrollSpeed: 0.2,
+                    enableLineEdit: false,
                     background: Image.network(
                       imageUrl6,
                       fit: BoxFit.cover,
@@ -482,7 +503,35 @@ class _HomePageState extends State<HomePage> {
 
   // 保存为图片
   Future<void> saveToImage() async {
-    Uint8List pngBytes = (await painterKey.currentState?.getImage())!;
+    int startTime = DateTime.now().millisecondsSinceEpoch;
+    // Uint8List pngBytes =
+    //     (await painterKey.currentState?.getImage(pixelRatio: 2))!;
+    // debugPrint(
+    //     'saveToImage===>${DateTime.now().millisecondsSinceEpoch - startTime} size:${pngBytes.length}');
+
+    // /// 显示图片
+    // showDialog(
+    //   context: context,
+    //   builder: (context) {
+    //     return AlertDialog(
+    //       title: Text('保存的图片'),
+    //       content: Container(
+    //         decoration: BoxDecoration(
+    //           border: Border.all(
+    //             color: Colors.grey,
+    //             width: 1,
+    //           ),
+    //         ),
+    //         child: Image.memory(pngBytes),
+    //       ),
+    //     );
+    //   },
+    // );
+    // startTime = DateTime.now().millisecondsSinceEpoch;
+    Uint8List pngBytes1 =
+        (await painterKey.currentState?.getCanvasImage(pixelRatio: 1.5))!;
+    debugPrint(
+        'saveToImage2===>${DateTime.now().millisecondsSinceEpoch - startTime} size:${pngBytes1.length}');
 
     /// 显示图片
     showDialog(
@@ -497,7 +546,7 @@ class _HomePageState extends State<HomePage> {
                 width: 1,
               ),
             ),
-            child: Image.memory(pngBytes),
+            child: Image.memory(pngBytes1),
           ),
         );
       },

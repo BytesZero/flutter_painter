@@ -13,7 +13,6 @@ import 'draw/draw_borad.dart';
 import 'draw/draw_eraser.dart';
 import 'draw/draw_line.dart';
 import 'draw/draw_text.dart';
-import 'platform/painter_platform.dart';
 
 /// Flutter Painter
 class FlutterPainterWidget extends StatefulWidget {
@@ -160,14 +159,14 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       _moveY = widget.moveY!;
     }
     // 禁用默认的右键事件处理
-    disableRightClick();
+    // disableRightClick();
     super.initState();
   }
 
   @override
   void dispose() {
     //启用右键事件处理
-    enableRightClick();
+    // enableRightClick();
     super.dispose();
   }
 
@@ -746,14 +745,44 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     resetParams();
     // 这里是为了防止图片生成不了
     await Future.delayed(Duration(milliseconds: delayed));
-
     // 开始保存图片
     RenderRepaintBoundary boundary = _drawToImageKey.currentContext!
         .findRenderObject() as RenderRepaintBoundary;
     ui.Image image = await boundary.toImage(pixelRatio: pixelRatio);
-    ByteData byteData = await (image.toByteData(format: ui.ImageByteFormat.png)
-        as Future<ByteData>);
-    Uint8List pngBytes = byteData.buffer.asUint8List();
+
+    var byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    Uint8List pngBytes = byteData!.buffer.asUint8List();
+    return pngBytes;
+  }
+
+  /// 获取为图片
+  /// [pixelRatio]分辨率
+  Future<Uint8List?> getCanvasImage({double pixelRatio = 1}) async {
+    // 恢复到默认状态
+    resetParams();
+    // 图片录制
+    ui.PictureRecorder recorder = ui.PictureRecorder();
+    // Canvas 对象
+    Canvas canvas = Canvas(recorder);
+    DrawBorad painter = DrawBorad(drawBoradListenable);
+    // 生成大小
+    Size size = _painterSize! * pixelRatio;
+    // 保存一下
+    canvas.save();
+    // 缩放，这里是为了批改图层的清晰度
+    canvas.scale(pixelRatio);
+    // 绘制
+    painter.paint(canvas, size);
+    // 回退
+    canvas.restore();
+    // 生成图片
+    ui.Image image = await recorder
+        .endRecording()
+        .toImage(size.width.floor(), size.height.floor());
+    // 转换成 png 图片数据
+    var byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    // 转换成 Buffer 数据流
+    Uint8List pngBytes = byteData!.buffer.asUint8List();
     return pngBytes;
   }
 }
