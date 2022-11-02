@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_painter/draw/draw_edit.dart';
 import 'package:flutter_painter/draw/draw_image.dart';
+import 'package:flutter_painter/platform/painter_platform.dart';
 
 import 'draw/base_line.dart';
 import 'draw/draw_borad.dart';
@@ -159,14 +160,14 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       _moveY = widget.moveY!;
     }
     // 禁用默认的右键事件处理
-    // disableRightClick();
+    disableRightClick();
     super.initState();
   }
 
   @override
   void dispose() {
     //启用右键事件处理
-    // enableRightClick();
+    enableRightClick();
     super.dispose();
   }
 
