@@ -759,6 +759,9 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   /// 获取为图片
   /// [pixelRatio]分辨率
   Future<Uint8List?> getCanvasImage({double pixelRatio = 1}) async {
+    if (_painterSize == null) {
+      return null;
+    }
     // 恢复到默认状态
     resetParams();
     // 图片录制
