@@ -1,6 +1,6 @@
 name: flutter_painter
 description: 一个 Flutter 涂鸦库，支持涂鸦、可切换颜色和粗细、添加文字、改变文字大小和颜色、手势放大缩小，旋转背景，导出图片
-version: 1.4.9
+version: 1.5.0
 homepage: https://github.com/yy1300326388/flutter_painter
 
 environment:
