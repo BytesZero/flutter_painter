@@ -1,5 +1,6 @@
+import 'dart:ui';
+
 import 'package:flutter/foundation.dart';
-import 'package:flutter/rendering.dart';
 
 import 'base_draw.dart';
 import 'draw_edit.dart';
@@ -7,11 +8,24 @@ import 'draw_edit.dart';
 /// 画板
 class DrawBorad extends CustomPainter {
   final DrawBoradListenable drawBoradListenable;
-  DrawBorad(this.drawBoradListenable) : super(repaint: drawBoradListenable);
+  final Image? bgImage;
+  DrawBorad(this.drawBoradListenable, {this.bgImage})
+      : super(repaint: drawBoradListenable);
 
   @override
   void paint(Canvas canvas, Size size) {
+    if (bgImage != null) {
+      paintImage(
+        canvas: canvas,
+        rect: Rect.fromLTWH(0, 0, size.width, size.height),
+        image: bgImage!,
+        filterQuality: FilterQuality.medium,
+        isAntiAlias: true,
+      );
+    }
+
     canvas.saveLayer(Rect.largest, Paint());
+    canvas.clipRect(Rect.fromLTWH(0, 0, size.width, size.height));
     for (var draw in drawBoradListenable.drawList) {
       draw.draw(canvas, size);
     }

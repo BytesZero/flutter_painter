@@ -1,0 +1,3 @@
+void disableRightClick() {}
+
+void enableRightClick() {}
