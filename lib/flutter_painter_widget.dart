@@ -322,24 +322,31 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     Offset newOffset = getNewPoint(offset);
     cursor = MouseCursor.defer;
     if (_tempEdit != null && _tempEdit is DrawEdit && _tempEdit.selected) {
-      if (_tempEdit.rect != null && _tempEdit.rect.contains(newOffset)) {
-        cursor = SystemMouseCursors.move;
-        tempEditMove = true;
-      }
-      // 计算拉伸区域
-      double? delRadius = _tempEdit.delRadius;
       Rect? tempRect = _tempEdit.rect;
-      if (delRadius == null || tempRect == null) {
+      if (tempRect == null) {
+        debugPrint('FlutterPainter _handleEditMouseCursor tempRect is null');
         return;
       }
-      Rect delRect = Rect.fromCircle(
+      // 计算拉伸区域
+      double? scaleRadius = _tempEdit.delRadius;
+      if (scaleRadius == null) {
+        debugPrint('FlutterPainter _handleEditMouseCursor scaleRadius is null');
+        return;
+      }
+      // 缩放选中区域
+      Rect scaleRect = Rect.fromCircle(
         center: tempRect.bottomRight,
-        radius: delRadius,
+        radius: scaleRadius * 2,
       );
-      // 编辑选中并且命中删除区域
-      if (delRect.contains(newOffset)) {
+      // 编辑选中并且命中缩放区域
+      if (scaleRect.contains(newOffset)) {
         cursor = SystemMouseCursors.resizeDownRight;
         tempEditMove = false;
+      } else {
+        if (tempRect.contains(newOffset)) {
+          cursor = SystemMouseCursors.move;
+          tempEditMove = true;
+        }
       }
     }
     setState(() {});
@@ -475,7 +482,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       _tmpMoveY = _tempEdit.offset.dy;
       _tmpScale = _tempEdit.scale;
       _tmpRect = _tempEdit.rect;
-      _handleEditMouseCursor(_tmpFocal);
+      _handleEditMouseCursor(details.localFocalPoint);
     } else {
       _tmpMoveX = _moveX;
       _tmpMoveY = _moveY;
