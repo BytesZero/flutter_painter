@@ -529,7 +529,7 @@ class _HomePageState extends State<HomePage> {
     // );
     // startTime = DateTime.now().millisecondsSinceEpoch;
     Uint8List pngBytes1 =
-        (await painterKey.currentState?.getCanvasImage(pixelRatio: 1.5))!;
+        (await painterKey.currentState?.getCanvasImage(pixelRatio: 3))!;
     debugPrint(
         'saveToImage2===>${DateTime.now().millisecondsSinceEpoch - startTime} size:${pngBytes1.length}');
 

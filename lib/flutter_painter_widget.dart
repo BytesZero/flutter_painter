@@ -322,13 +322,16 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     Offset newOffset = getNewPoint(offset);
     cursor = MouseCursor.defer;
     if (_tempEdit != null && _tempEdit is DrawEdit && _tempEdit.selected) {
-      if (_tempEdit.rect.contains(newOffset)) {
+      if (_tempEdit.rect != null && _tempEdit.rect.contains(newOffset)) {
         cursor = SystemMouseCursors.move;
         tempEditMove = true;
       }
       // 计算拉伸区域
-      double delRadius = _tempEdit.delRadius;
-      Rect tempRect = _tempEdit.rect;
+      double? delRadius = _tempEdit.delRadius;
+      Rect? tempRect = _tempEdit.rect;
+      if (delRadius == null || tempRect == null) {
+        return;
+      }
       Rect delRect = Rect.fromCircle(
         center: tempRect.bottomRight,
         radius: delRadius,
