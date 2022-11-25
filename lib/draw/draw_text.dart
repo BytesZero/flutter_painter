@@ -7,6 +7,8 @@ class DrawText extends BaseDraw with DrawEdit implements Copyable<DrawText> {
   String? text; // 文字
   Color color = Color(0xFFFFFFFF); // 颜色
   double fontSize = 14; // 文字大小
+  String? fontFamily; // 字体
+  TextStyle? style; // 文字样式
   late TextPainter tp; // 文字画笔
 
   @override
@@ -16,7 +18,11 @@ class DrawText extends BaseDraw with DrawEdit implements Copyable<DrawText> {
     }
     canvas.save();
     // 设置样式
-    TextStyle style = TextStyle(fontSize: fontSize, color: color);
+    style ??= TextStyle(
+      fontSize: fontSize,
+      color: color,
+      fontFamily: fontFamily,
+    );
     // 设置文本
     TextSpan textSpan = TextSpan(
       text: text,
@@ -51,7 +57,9 @@ class DrawText extends BaseDraw with DrawEdit implements Copyable<DrawText> {
     var newCopy = DrawText()
       ..text = text
       ..color = color
-      ..fontSize = fontSize;
+      ..fontSize = fontSize
+      ..fontFamily = fontFamily
+      ..style = style;
     super.copyBaseDraw(newCopy);
     super.copyEdit(newCopy);
     return newCopy;

@@ -80,7 +80,7 @@ class _EditTextPageState extends State<EditTextPage> {
                 fontSize: 24,
                 color: selectColor,
               ),
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 border: InputBorder.none,
                 disabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,

@@ -336,7 +336,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       // 缩放选中区域
       Rect scaleRect = Rect.fromCircle(
         center: tempRect.bottomRight,
-        radius: scaleRadius * 2,
+        radius: scaleRadius * 1.2,
       );
       // 编辑选中并且命中缩放区域
       if (scaleRect.contains(newOffset)) {
