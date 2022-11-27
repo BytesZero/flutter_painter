@@ -487,6 +487,7 @@ class _HomePageState extends State<HomePage> {
         drawText
           ..text = text
           ..color = textColor;
+        painterKey.currentState?.updateText(drawText);
       }
     }
   }
