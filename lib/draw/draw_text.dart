@@ -36,7 +36,7 @@ class DrawText extends BaseDraw with DrawEdit implements Copyable<DrawText> {
       textScaleFactor: scale,
     );
     // 布局文字
-    tp.layout();
+    tp.layout(maxWidth: drawSize?.width ?? double.infinity);
     // 计算文字矩阵
     this.rect = Rect.fromLTWH(
       offset.dx - 4,
