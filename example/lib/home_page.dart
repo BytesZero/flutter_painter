@@ -476,7 +476,7 @@ class _HomePageState extends State<HomePage> {
         // final ThemeData theme = ;
         DrawText newDrawText = DrawText()
           ..text = text
-          ..drawSize = Size.zero
+          ..drawSize = const Size(300, 400)
           ..offset = center
           ..fontSize = 14
           ..color = textColor
@@ -487,6 +487,7 @@ class _HomePageState extends State<HomePage> {
         drawText
           ..text = text
           ..color = textColor;
+        painterKey.currentState?.updateText(drawText);
       }
     }
   }

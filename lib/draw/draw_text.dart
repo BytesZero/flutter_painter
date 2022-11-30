@@ -18,15 +18,16 @@ class DrawText extends BaseDraw with DrawEdit implements Copyable<DrawText> {
     }
     canvas.save();
     // 设置样式
-    style ??= TextStyle(
-      fontSize: fontSize,
-      color: color,
-      fontFamily: fontFamily,
-    );
+    TextStyle newStyle = style ??
+        TextStyle(
+          fontSize: fontSize,
+          color: color,
+          fontFamily: fontFamily,
+        );
     // 设置文本
     TextSpan textSpan = TextSpan(
       text: text,
-      style: style,
+      style: newStyle,
     );
     // 设置文本画笔
     tp = TextPainter(
@@ -36,7 +37,7 @@ class DrawText extends BaseDraw with DrawEdit implements Copyable<DrawText> {
       textScaleFactor: scale,
     );
     // 布局文字
-    tp.layout();
+    tp.layout(maxWidth: drawSize?.width ?? double.infinity);
     // 计算文字矩阵
     this.rect = Rect.fromLTWH(
       offset.dx - 4,

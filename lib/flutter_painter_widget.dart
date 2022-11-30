@@ -196,6 +196,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       body: Listener(
         onPointerDown: (event) {
           _onPointerDown(event.buttons);
+          _onPointerEdit(event);
         },
         onPointerUp: (event) {
           _onPointerUp(event.buttons);
@@ -311,6 +312,11 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 鼠标悬停事件
   void _onPointerHover(PointerHoverEvent event) {
+    _onPointerEdit(event);
+  }
+
+  /// 编辑事件，主要处理移动、缩放等
+  void _onPointerEdit(PointerEvent event) {
     if (boradMode == BoradMode.Edit) {
       Offset lp = event.localPosition;
       _handleEditMouseCursor(lp);
@@ -482,7 +488,6 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       _tmpMoveY = _tempEdit.offset.dy;
       _tmpScale = _tempEdit.scale;
       _tmpRect = _tempEdit.rect;
-      _handleEditMouseCursor(details.localFocalPoint);
     } else {
       _tmpMoveX = _moveX;
       _tmpMoveY = _moveY;
