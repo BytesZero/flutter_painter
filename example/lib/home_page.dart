@@ -170,6 +170,7 @@ class _HomePageState extends State<HomePage> {
                 )
               ],
             ),
+            // 底部菜单
             Positioned(
               bottom: 0,
               left: 0,
@@ -394,6 +395,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
+            // 体脂
             Positioned(
               right: 0,
               bottom: MediaQuery.of(context).size.height / 2 - 90,
@@ -465,24 +467,27 @@ class _HomePageState extends State<HomePage> {
         return;
       }
       // 这里加个演示，防止获取到的布局大小是键盘弹起后的大小，高度会错误，导致中心点不对
-      await Future.delayed(Duration(milliseconds: 600));
+      await Future.delayed(const Duration(milliseconds: 600));
       Color textColor = Color(colorValue);
       if (drawText == null) {
         Offset center = getCurrentCenterOffset();
         center = center.translate(-14 * (text.length.clamp(1, 30)) / 4, -20);
         print('center:$center');
+        // final ThemeData theme = ;
         DrawText newDrawText = DrawText()
           ..text = text
-          ..drawSize = Size.zero
+          ..drawSize = const Size(300, 400)
           ..offset = center
           ..fontSize = 14
           ..color = textColor
+          ..fontFamily = Theme.of(context).textTheme.subtitle1!.fontFamily
           ..selected = true;
         painterKey.currentState?.addText(newDrawText);
       } else {
         drawText
           ..text = text
           ..color = textColor;
+        painterKey.currentState?.updateText(drawText);
       }
     }
   }
@@ -529,7 +534,7 @@ class _HomePageState extends State<HomePage> {
     // );
     // startTime = DateTime.now().millisecondsSinceEpoch;
     Uint8List pngBytes1 =
-        (await painterKey.currentState?.getCanvasImage(pixelRatio: 1.5))!;
+        (await painterKey.currentState?.getCanvasImage(pixelRatio: 3))!;
     debugPrint(
         'saveToImage2===>${DateTime.now().millisecondsSinceEpoch - startTime} size:${pngBytes1.length}');
 

@@ -1,6 +1,6 @@
 name: flutter_painter
 description: 一个 Flutter 涂鸦库，支持涂鸦、可切换颜色和粗细、添加文字、改变文字大小和颜色、手势放大缩小，旋转背景，导出图片
-version: 1.5.0
+version: 1.5.1
 homepage: https://github.com/yy1300326388/flutter_painter
 
 environment:
@@ -49,3 +49,4 @@ flutter:
   #
   # For details regarding fonts in packages, see
   # https://flutter.dev/custom-fonts/#from-packages
+  #flutter build web --web-renderer canvaskit --dart-define=BROWSER_IMAGE_DECODING_ENABLED=false --dart-define APP_SERVER_ENV=dev --dart-define APP_CHANNEL=app_web --dart-define=FLUTTER_WEB_CANVASKIT_URL="https://allsystemfile.banjixiaoguanjia.com/app/web/canvaskit-wasm/0.33.0/"

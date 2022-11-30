@@ -10,7 +10,7 @@ mixin DrawEdit {
 
   /// 绘制编辑
   void drawEdit(Canvas canvas, Paint paint) {
-    if (!selected) {
+    if (!selected || rect == null) {
       return;
     }
     // 设置边框画笔
