@@ -140,6 +140,9 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   Size? get painterSize => _painterSize;
   // 鼠标效果
   MouseCursor cursor = MouseCursor.defer;
+  // 按下 Ctrl 键
+  bool _ctrlPressed = false;
+
   @override
   void initState() {
     /// 设置默认
@@ -374,7 +377,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
         clickAddDraw.scale = getNewScale(newScale);
       }
     } else {
-      if (widget.mouseScrollZoom) {
+      // 按下 Ctrl 键或者设置滚轮为缩放则执行缩放
+      if (_ctrlPressed || widget.mouseScrollZoom) {
         // 缩放
         double newScale = scale + scaleRatio;
         setScale(newScale);
@@ -394,7 +398,13 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   /// 切换画板模式
   void _switchBoradMode(int buttons) {
     if (_boradMode != BoradMode.Edit) {
-      if (_pointerCount > 1 || buttons == kSecondaryMouseButton) {
+      // 如下几种情况切换到缩放模式
+      // 1、按下点大于1 ==》缩放
+      // 2、按下鼠标右键==> 移动
+      // 3、按下 Ctrl + 鼠标左键==》移动
+      if (_pointerCount > 1 ||
+          buttons == kSecondaryMouseButton ||
+          _ctrlPressed && buttons == kPrimaryMouseButton) {
         _boradMode = BoradMode.Zoom;
       } else {
         _boradMode = BoradMode.Draw;
@@ -724,6 +734,11 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   /// 设置擦除宽度
   void setEraseWidth(double width) {
     _eraseWidth = width;
+  }
+
+  /// 处理触发按键
+  void handleRawKeyEvent(RawKeyEvent event) {
+    _ctrlPressed = event.isControlPressed;
   }
 
   /// 清空

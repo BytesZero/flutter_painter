@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_painter/flutter_painter.dart';
 
 import 'edit_text_page.dart';
@@ -80,11 +81,20 @@ class _HomePageState extends State<HomePage> {
 
   // String 当前选中的图片
   String? selectImg;
+  // 聚焦
+  late FocusNode focusNode;
 
   @override
   void initState() {
+    focusNode = FocusNode();
     super.initState();
     getAbsoluteSize();
+  }
+
+  @override
+  void dispose() {
+    focusNode.dispose();
+    super.dispose();
   }
 
   /// 获取最终图片的大小来设置画布的大小
@@ -136,313 +146,348 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: Text('Flutter Painter Demo'),
-        ),
-        body: Stack(
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 160,
-                  height: height,
-                  color: Colors.red,
-                ),
-                Expanded(
-                  child: FlutterPainterWidget(
-                    key: painterKey,
-                    width: width,
-                    height: height,
-                    mouseScrollZoom: false,
-                    scale: 1.5,
-                    scrollSpeed: 0.2,
-                    enableLineEdit: false,
-                    background: Image.network(
-                      imageUrl6,
-                      fit: BoxFit.cover,
-                      key: imgKey,
-                    ),
-                    onTapText: (item) {
-                      showEditTextDialog(drawText: item);
-                    },
-                  ),
-                )
-              ],
+    return CallbackShortcuts(
+      bindings: {
+        // 切换图片
+        SingleActivator(LogicalKeyboardKey.arrowLeft): () {
+          print('Flutter Painter Demo <===');
+        },
+        SingleActivator(LogicalKeyboardKey.arrowRight): () {
+          print('Flutter Painter Demo ===>');
+        },
+        // 撤销
+        SingleActivator(
+          LogicalKeyboardKey.keyZ,
+          control: true,
+        ): () {
+          print('Flutter Painter Demo Ctrl+Z');
+          painterKey.currentState?.undo();
+        },
+      },
+      child: RawKeyboardListener(
+        focusNode: focusNode,
+        autofocus: true,
+        onKey: (event) {
+          painterKey.currentState?.handleRawKeyEvent(event);
+          print(
+              'Flutter Painter Demo event.isControlPressed:${event.isControlPressed}');
+        },
+        child: Scaffold(
+            appBar: AppBar(
+              title: Text('Flutter Painter Demo'),
             ),
-            // 底部菜单
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: SafeArea(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
+            body: Stack(
+              children: [
+                Row(
                   children: [
-                    AnimatedOpacity(
-                      duration: Duration(milliseconds: 600),
-                      opacity: 1,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        padding: EdgeInsets.all(4),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: colorList.map((color) {
-                            return GestureDetector(
-                              onTap: () {
-                                selectColor = color;
-                                setState(() {});
-                                painterKey.currentState?.setBrushColor(color);
-                              },
-                              child: Container(
-                                height: 24,
-                                width: 24,
-                                margin: EdgeInsets.all(6),
-                                padding: EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: color,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: selectColor == color ? 4 : 2,
-                                  ),
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 10),
                     Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(30),
+                      width: 160,
+                      height: height,
+                      color: Colors.red,
+                    ),
+                    Expanded(
+                      child: FlutterPainterWidget(
+                        key: painterKey,
+                        width: width,
+                        height: height,
+                        mouseScrollZoom: false,
+                        scale: 1.5,
+                        scrollSpeed: 0.2,
+                        enableLineEdit: false,
+                        background: Image.network(
+                          imageUrl3,
+                          fit: BoxFit.cover,
+                          key: imgKey,
+                        ),
+                        onTapText: (item) {
+                          showEditTextDialog(drawText: item);
+                        },
                       ),
-                      padding:
-                          EdgeInsets.symmetric(vertical: 4, horizontal: 10),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: brushWidthList.map((width) {
-                          return GestureDetector(
-                            onTap: () {
-                              brushWidth = width;
-                              setState(() {});
-                              painterKey.currentState?.setBrushWidth(width);
-                            },
-                            child: Container(
-                                height: 36,
-                                width: 36,
-                                margin: EdgeInsets.all(6),
-                                padding: EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(30),
-                                  border: Border.all(
-                                    color: brushWidth == width
-                                        ? Colors.white
-                                        : Colors.transparent,
-                                    width: 2,
-                                  ),
-                                ),
-                                child: Column(
-                                  children: [
-                                    Icon(
-                                      Icons.brush_rounded,
-                                      size: 16,
-                                      color: brushWidth == width
-                                          ? selectColor
-                                          : Colors.black54,
-                                    ),
-                                    Container(
-                                      height: width,
-                                      width: 18,
-                                      decoration: BoxDecoration(
-                                        color: brushWidth == width
-                                            ? selectColor
-                                            : Colors.black87,
-                                        borderRadius:
-                                            BorderRadius.circular(width),
+                    )
+                  ],
+                ),
+                // 底部菜单
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: SafeArea(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AnimatedOpacity(
+                          duration: Duration(milliseconds: 600),
+                          opacity: 1,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            padding: EdgeInsets.all(4),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: colorList.map((color) {
+                                return GestureDetector(
+                                  onTap: () {
+                                    selectColor = color;
+                                    setState(() {});
+                                    painterKey.currentState
+                                        ?.setBrushColor(color);
+                                  },
+                                  child: Container(
+                                    height: 24,
+                                    width: 24,
+                                    margin: EdgeInsets.all(6),
+                                    padding: EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color: color,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: Colors.white,
+                                        width: selectColor == color ? 4 : 2,
                                       ),
                                     ),
-                                  ],
-                                )),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          padding:
+                              EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: brushWidthList.map((width) {
+                              return GestureDetector(
+                                onTap: () {
+                                  brushWidth = width;
+                                  setState(() {});
+                                  painterKey.currentState?.setBrushWidth(width);
+                                },
+                                child: Container(
+                                    height: 36,
+                                    width: 36,
+                                    margin: EdgeInsets.all(6),
+                                    padding: EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(30),
+                                      border: Border.all(
+                                        color: brushWidth == width
+                                            ? Colors.white
+                                            : Colors.transparent,
+                                        width: 2,
+                                      ),
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        Icon(
+                                          Icons.brush_rounded,
+                                          size: 16,
+                                          color: brushWidth == width
+                                              ? selectColor
+                                              : Colors.black54,
+                                        ),
+                                        Container(
+                                          height: width,
+                                          width: 18,
+                                          decoration: BoxDecoration(
+                                            color: brushWidth == width
+                                                ? selectColor
+                                                : Colors.black87,
+                                            borderRadius:
+                                                BorderRadius.circular(width),
+                                          ),
+                                        ),
+                                      ],
+                                    )),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            FloatingActionButton(
+                              child: Icon(Icons.save_alt_rounded),
+                              tooltip: '保存',
+                              heroTag: 'save',
+                              onPressed: () {
+                                saveToImage();
+                              },
+                            ),
+                            SizedBox(width: 2),
+                            FloatingActionButton(
+                              child: Icon(Icons.crop_rotate_rounded),
+                              tooltip: '旋转',
+                              heroTag: 'rotate',
+                              onPressed: () {
+                                painterKey.currentState?.clearDraw();
+                                // 计算旋转
+                                rotation = rotation - pi / 2;
+                                painterKey.currentState
+                                    ?.setBackgroundRotation(rotation);
+                                // 计算缩放
+                                Size imgSize = getImageSize();
+                                Size broadSize =
+                                    painterKey.currentState?.boradSize ??
+                                        Size.zero;
+                                double scaleWidth =
+                                    broadSize.width / imgSize.width;
+                                double scaleHeight =
+                                    broadSize.height / imgSize.height;
+                                double minScale = min(scaleWidth, scaleHeight);
+                                // width = imgSize.width * minScale;
+                                // height = imgSize.height * minScale;
+                                painterKey.currentState?.setBgScale(minScale);
+                                painterKey.currentState?.setScale(1);
+                                painterKey.currentState?.setMove(0, 0);
+                                print(
+                                    'FlutterPainter imgSize:$imgSize broadSize:$broadSize , minScale:$minScale scaleWidth:$scaleWidth scaleHeight:$scaleHeight');
+                                setState(() {});
+                              },
+                            ),
+                            SizedBox(width: 2),
+                            FloatingActionButton(
+                              child: Icon(Icons.undo_rounded),
+                              tooltip: '回退',
+                              heroTag: 'undo',
+                              onPressed: () {
+                                painterKey.currentState?.undo();
+                              },
+                            ),
+                            SizedBox(width: 2),
+                            FloatingActionButton(
+                              child: Icon(Icons.ac_unit_rounded),
+                              tooltip: '橡皮擦',
+                              heroTag: 'erase',
+                              onPressed: () {
+                                painterKey.currentState?.setEraseMode(true);
+                                painterKey.currentState?.setEraseWidth(20);
+                              },
+                            ),
+                            SizedBox(width: 2),
+                            FloatingActionButton(
+                              child: Icon(
+                                Icons.clear,
+                              ),
+                              tooltip: '清空',
+                              heroTag: 'clear',
+                              onPressed: () {
+                                painterKey.currentState?.clearDraw();
+                              },
+                            ),
+                            SizedBox(width: 2),
+                            FloatingActionButton(
+                              child: Icon(
+                                Icons.text_fields_rounded,
+                                color: selectColor,
+                              ),
+                              tooltip: '文本',
+                              heroTag: 'text',
+                              onPressed: () {
+                                showEditTextDialog();
+                              },
+                            ),
+                            SizedBox(width: 2),
+                            FloatingActionButton(
+                              child: Icon(Icons.zoom_in),
+                              tooltip: '放大',
+                              heroTag: 'zoom_in',
+                              onPressed: () {
+                                double newScale =
+                                    painterKey.currentState!.scale + 0.5;
+                                painterKey.currentState?.setScale(newScale);
+                                if (newScale > 1) {
+                                  double marginTop = (height ?? 0) *
+                                      (newScale - 1) /
+                                      newScale /
+                                      2;
+                                  print('放大===>$marginTop');
+                                  painterKey.currentState
+                                      ?.setMove(0, marginTop);
+                                }
+                              },
+                            ),
+                            SizedBox(width: 2),
+                            FloatingActionButton(
+                              child: Icon(Icons.zoom_out),
+                              tooltip: '缩小',
+                              heroTag: 'zoom_out',
+                              onPressed: () {
+                                double newScale =
+                                    painterKey.currentState!.scale - 0.5;
+                                painterKey.currentState?.setScale(newScale);
+                                if (newScale <= 1) {
+                                  painterKey.currentState?.setMove(0, 0);
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                        SizedBox(width: 6),
+                      ],
+                    ),
+                  ),
+                ),
+                // 体脂
+                Positioned(
+                  right: 0,
+                  bottom: MediaQuery.of(context).size.height / 2 - 90,
+                  child: SafeArea(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding:
+                          EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: imageList.map((img) {
+                          return GestureDetector(
+                            onTap: () {
+                              if (img != this.selectImg) {
+                                this.selectImg = img;
+                                addImg(this.selectImg);
+                              } else {
+                                this.selectImg = null;
+                                painterKey.currentState!.setClickAddDraw(null);
+                              }
+                              setState(() {});
+                            },
+                            child: Container(
+                              padding: EdgeInsets.all(2),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                    color: this.selectImg == img
+                                        ? Colors.white
+                                        : Colors.transparent,
+                                    width: 1),
+                              ),
+                              child: Image.asset(
+                                img,
+                                width: 40,
+                                height: 40,
+                              ),
+                            ),
                           );
                         }).toList(),
                       ),
                     ),
-                    SizedBox(height: 20),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        FloatingActionButton(
-                          child: Icon(Icons.save_alt_rounded),
-                          tooltip: '保存',
-                          heroTag: 'save',
-                          onPressed: () {
-                            saveToImage();
-                          },
-                        ),
-                        SizedBox(width: 2),
-                        FloatingActionButton(
-                          child: Icon(Icons.crop_rotate_rounded),
-                          tooltip: '旋转',
-                          heroTag: 'rotate',
-                          onPressed: () {
-                            painterKey.currentState?.clearDraw();
-                            // 计算旋转
-                            rotation = rotation - pi / 2;
-                            painterKey.currentState
-                                ?.setBackgroundRotation(rotation);
-                            // 计算缩放
-                            Size imgSize = getImageSize();
-                            Size broadSize =
-                                painterKey.currentState?.boradSize ?? Size.zero;
-                            double scaleWidth = broadSize.width / imgSize.width;
-                            double scaleHeight =
-                                broadSize.height / imgSize.height;
-                            double minScale = min(scaleWidth, scaleHeight);
-                            // width = imgSize.width * minScale;
-                            // height = imgSize.height * minScale;
-                            painterKey.currentState?.setBgScale(minScale);
-                            painterKey.currentState?.setScale(1);
-                            painterKey.currentState?.setMove(0, 0);
-                            print(
-                                'FlutterPainter imgSize:$imgSize broadSize:$broadSize , minScale:$minScale scaleWidth:$scaleWidth scaleHeight:$scaleHeight');
-                            setState(() {});
-                          },
-                        ),
-                        SizedBox(width: 2),
-                        FloatingActionButton(
-                          child: Icon(Icons.undo_rounded),
-                          tooltip: '回退',
-                          heroTag: 'undo',
-                          onPressed: () {
-                            painterKey.currentState?.undo();
-                          },
-                        ),
-                        SizedBox(width: 2),
-                        FloatingActionButton(
-                          child: Icon(Icons.ac_unit_rounded),
-                          tooltip: '橡皮擦',
-                          heroTag: 'erase',
-                          onPressed: () {
-                            painterKey.currentState?.setEraseMode(true);
-                            painterKey.currentState?.setEraseWidth(20);
-                          },
-                        ),
-                        SizedBox(width: 2),
-                        FloatingActionButton(
-                          child: Icon(
-                            Icons.clear,
-                          ),
-                          tooltip: '清空',
-                          heroTag: 'clear',
-                          onPressed: () {
-                            painterKey.currentState?.clearDraw();
-                          },
-                        ),
-                        SizedBox(width: 2),
-                        FloatingActionButton(
-                          child: Icon(
-                            Icons.text_fields_rounded,
-                            color: selectColor,
-                          ),
-                          tooltip: '文本',
-                          heroTag: 'text',
-                          onPressed: () {
-                            showEditTextDialog();
-                          },
-                        ),
-                        SizedBox(width: 2),
-                        FloatingActionButton(
-                          child: Icon(Icons.zoom_in),
-                          tooltip: '放大',
-                          heroTag: 'zoom_in',
-                          onPressed: () {
-                            double newScale =
-                                painterKey.currentState!.scale + 0.5;
-                            painterKey.currentState?.setScale(newScale);
-                            if (newScale > 1) {
-                              double marginTop =
-                                  (height ?? 0) * (newScale - 1) / newScale / 2;
-                              print('放大===>$marginTop');
-                              painterKey.currentState?.setMove(0, marginTop);
-                            }
-                          },
-                        ),
-                        SizedBox(width: 2),
-                        FloatingActionButton(
-                          child: Icon(Icons.zoom_out),
-                          tooltip: '缩小',
-                          heroTag: 'zoom_out',
-                          onPressed: () {
-                            double newScale =
-                                painterKey.currentState!.scale - 0.5;
-                            painterKey.currentState?.setScale(newScale);
-                            if (newScale <= 1) {
-                              painterKey.currentState?.setMove(0, 0);
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                    SizedBox(width: 6),
-                  ],
-                ),
-              ),
-            ),
-            // 体脂
-            Positioned(
-              right: 0,
-              bottom: MediaQuery.of(context).size.height / 2 - 90,
-              child: SafeArea(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
                   ),
-                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: imageList.map((img) {
-                      return GestureDetector(
-                        onTap: () {
-                          if (img != this.selectImg) {
-                            this.selectImg = img;
-                            addImg(this.selectImg);
-                          } else {
-                            this.selectImg = null;
-                            painterKey.currentState!.setClickAddDraw(null);
-                          }
-                          setState(() {});
-                        },
-                        child: Container(
-                          padding: EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                                color: this.selectImg == img
-                                    ? Colors.white
-                                    : Colors.transparent,
-                                width: 1),
-                          ),
-                          child: Image.asset(
-                            img,
-                            width: 40,
-                            height: 40,
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ),
-            )
-          ],
-        ));
+                )
+              ],
+            )),
+      ),
+    );
   }
 
   /// 现实文字输入框
