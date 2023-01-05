@@ -142,6 +142,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   MouseCursor cursor = MouseCursor.defer;
   // 按下 Ctrl 键
   bool _ctrlPressed = false;
+
   @override
   void initState() {
     /// 设置默认
@@ -194,96 +195,87 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     _matrix4 = Matrix4.identity()
       ..scale(_scale, _scale)
       ..translate(_moveX, _moveY);
-    return RawKeyboardListener(
-      focusNode: FocusNode(),
-      autofocus: true,
-      onKey: (event) {
-        _ctrlPressed = event.isControlPressed;
-      },
-      child: Scaffold(
-        key: _drawBoradKey,
-        body: Listener(
-          onPointerDown: (event) {
-            _onPointerDown(event.buttons);
-            _onPointerEdit(event);
-          },
-          onPointerUp: (event) {
-            _onPointerUp(event.buttons);
-            // 这里是解决点击后再绘制会从点击的那个点开始绘制的问题，最终效果是多出一段距离来
-            _tempLine = null;
-          },
-          onPointerCancel: (event) {
-            // 这个回调彻底解决手指数异常的问题
-            _onPointerUp(event.buttons);
-          },
-          onPointerHover: (event) {
-            _onPointerHover(event);
-          },
-          onPointerMove: (event) {
-            if (boradMode == BoradMode.Draw) {
-              _handleOnPanUpdate(event.localPosition);
-            }
-          },
-          onPointerSignal: (event) {
-            if (event is PointerScrollEvent) {
-              _onPointerScroll(event);
-            }
-          },
-          child: MouseRegion(
-            cursor: cursor,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTapDown: (details) {},
-              onTapUp: (details) {
-                // 设置按下事件信息
-                _tempTapUpDetails = details;
-              },
-              onTap: () {
-                _handleOnTap();
-                // 清空按下信息，方式错误绘制
-                _tempTapUpDetails = null;
-              },
-              onScaleStart: (details) {
-                if (boradMode == BoradMode.Zoom ||
-                    boradMode == BoradMode.Edit) {
-                  _handleOnScaleStart(details);
-                }
-              },
-              onScaleUpdate: (details) {
-                if (boradMode == BoradMode.Zoom ||
-                    boradMode == BoradMode.Edit) {
-                  _handleOnScaleUpdate(details);
-                }
-              },
-              onScaleEnd: (details) {
-                _tempLine = null;
-                _tempTapUpDetails = null;
-              },
-              child: ClipRect(
-                child: Center(
-                  child: SizedBox(
-                    width: newWidth,
-                    height: newHeight,
-                    child: RepaintBoundary(
-                      key: _drawToImageKey,
-                      child: Transform(
-                        transform: _matrix4,
-                        alignment: FractionalOffset.center,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            RotatedBox(
-                              quarterTurns: _bgRotation ~/ (pi / 2),
-                              child: widget.background,
+    return Scaffold(
+      key: _drawBoradKey,
+      body: Listener(
+        onPointerDown: (event) {
+          _onPointerDown(event.buttons);
+          _onPointerEdit(event);
+        },
+        onPointerUp: (event) {
+          _onPointerUp(event.buttons);
+          // 这里是解决点击后再绘制会从点击的那个点开始绘制的问题，最终效果是多出一段距离来
+          _tempLine = null;
+        },
+        onPointerCancel: (event) {
+          // 这个回调彻底解决手指数异常的问题
+          _onPointerUp(event.buttons);
+        },
+        onPointerHover: (event) {
+          _onPointerHover(event);
+        },
+        onPointerMove: (event) {
+          if (boradMode == BoradMode.Draw) {
+            _handleOnPanUpdate(event.localPosition);
+          }
+        },
+        onPointerSignal: (event) {
+          if (event is PointerScrollEvent) {
+            _onPointerScroll(event);
+          }
+        },
+        child: MouseRegion(
+          cursor: cursor,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTapDown: (details) {},
+            onTapUp: (details) {
+              // 设置按下事件信息
+              _tempTapUpDetails = details;
+            },
+            onTap: () {
+              _handleOnTap();
+              // 清空按下信息，方式错误绘制
+              _tempTapUpDetails = null;
+            },
+            onScaleStart: (details) {
+              if (boradMode == BoradMode.Zoom || boradMode == BoradMode.Edit) {
+                _handleOnScaleStart(details);
+              }
+            },
+            onScaleUpdate: (details) {
+              if (boradMode == BoradMode.Zoom || boradMode == BoradMode.Edit) {
+                _handleOnScaleUpdate(details);
+              }
+            },
+            onScaleEnd: (details) {
+              _tempLine = null;
+              _tempTapUpDetails = null;
+            },
+            child: ClipRect(
+              child: Center(
+                child: SizedBox(
+                  width: newWidth,
+                  height: newHeight,
+                  child: RepaintBoundary(
+                    key: _drawToImageKey,
+                    child: Transform(
+                      transform: _matrix4,
+                      alignment: FractionalOffset.center,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          RotatedBox(
+                            quarterTurns: _bgRotation ~/ (pi / 2),
+                            child: widget.background,
+                          ),
+                          RepaintBoundary(
+                            child: CustomPaint(
+                              size: Size.infinite,
+                              painter: DrawBorad(drawBoradListenable),
                             ),
-                            RepaintBoundary(
-                              child: CustomPaint(
-                                size: Size.infinite,
-                                painter: DrawBorad(drawBoradListenable),
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -742,6 +734,11 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   /// 设置擦除宽度
   void setEraseWidth(double width) {
     _eraseWidth = width;
+  }
+
+  /// 处理触发按键
+  void handleRawKeyEvent(RawKeyEvent event) {
+    _ctrlPressed = event.isControlPressed;
   }
 
   /// 清空
