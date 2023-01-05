@@ -137,6 +137,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
       MediaQuery.of(context).size;
   // 画布页面大小
   Size? _painterSize;
+  Size? get painterSize => _painterSize;
   // 鼠标效果
   MouseCursor cursor = MouseCursor.defer;
   @override
@@ -798,6 +799,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     ui.Image image = await recorder
         .endRecording()
         .toImage(size.width.floor(), size.height.floor());
+    // debugPrint(
+    //     "saveImage getCanvasImage _painterSize:${_painterSize.toString()} size:${size.toString()} width:${size.width.floor()} height:${size.height.floor()} imageSizewidth:${image.width} imageSizeheight:${image.height}");
     // 转换成 png 图片数据
     var byteData = await image.toByteData(format: ui.ImageByteFormat.png);
     // 转换成 Buffer 数据流
