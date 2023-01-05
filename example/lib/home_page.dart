@@ -159,7 +159,7 @@ class _HomePageState extends State<HomePage> {
                     scrollSpeed: 0.2,
                     enableLineEdit: false,
                     background: Image.network(
-                      imageUrl6,
+                      imageUrl3,
                       fit: BoxFit.cover,
                       key: imgKey,
                     ),
