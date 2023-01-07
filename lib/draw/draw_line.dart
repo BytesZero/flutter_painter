@@ -4,8 +4,6 @@ import 'draw_edit.dart';
 
 /// 绘制线
 class DrawLine extends BaseLine with DrawEdit implements Copyable<DrawLine> {
-  Color color = Color(0xFFFFFFFF); // 颜色
-
   @override
   void draw(Canvas canvas, Size size) {
     if (linePath.length < 2) {

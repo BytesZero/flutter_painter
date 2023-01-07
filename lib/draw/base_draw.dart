@@ -7,6 +7,7 @@ abstract class BaseDraw {
   Offset offset = Offset.zero; // 位置
   Size? drawSize; // 绘制项大小
   Paint paint = Paint(); // 画笔
+  Color color = Color(0xFFFFFFFF); // 颜色
   bool clickAdd = false; // 点击添加
 
   /// 绘制
@@ -20,6 +21,7 @@ abstract class BaseDraw {
     newDraw
       ..offset = offset
       ..drawSize = drawSize
+      ..color = color
       ..clickAdd = clickAdd;
     return newDraw;
   }

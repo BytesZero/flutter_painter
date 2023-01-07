@@ -53,6 +53,18 @@ class _HomePageState extends State<HomePage> {
     8,
   ];
 
+  //选择图形
+  Shape? selectShape;
+  // 图形列表
+  List<Shape> shapeList = [
+    Shape.Rectangle,
+    Shape.Triangle,
+    Shape.Oval,
+    Shape.Line,
+    Shape.WavyLine,
+    Shape.ArrowLine
+  ];
+
   // 图片资源列表
   List<String> imageList = [
     'assets/icons/icon_success.png',
@@ -216,6 +228,39 @@ class _HomePageState extends State<HomePage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          padding: EdgeInsets.all(4),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: shapeList.map((shape) {
+                              return GestureDetector(
+                                onTap: () {
+                                  selectShape = shape;
+                                  setState(() {});
+                                },
+                                child: Container(
+                                  height: 52,
+                                  width: 52,
+                                  margin: const EdgeInsets.all(6),
+                                  padding: const EdgeInsets.all(4),
+                                  child: Icon(
+                                    Icons.rectangle_outlined,
+                                    color: (selectShape != null &&
+                                            selectShape == shape)
+                                        ? selectColor
+                                        : Colors.grey,
+                                    size: 32,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
                         AnimatedOpacity(
                           duration: Duration(milliseconds: 600),
                           opacity: 1,
@@ -398,6 +443,22 @@ class _HomePageState extends State<HomePage> {
                             ),
                             SizedBox(width: 2),
                             FloatingActionButton(
+                              child: Icon(
+                                Icons.rectangle_outlined,
+                                color: selectColor,
+                              ),
+                              tooltip: '图形',
+                              heroTag: 'rect',
+                              onPressed: () {
+                                DrawRect rect = DrawRect()
+                                  ..color = selectColor
+                                  ..lineWidth = brushWidth;
+                                dynamic draw = rect;
+                                painterKey.currentState?.setDragShape(draw);
+                              },
+                            ),
+                            SizedBox(width: 2),
+                            FloatingActionButton(
                               child: Icon(Icons.zoom_in),
                               tooltip: '放大',
                               heroTag: 'zoom_in',
@@ -410,7 +471,6 @@ class _HomePageState extends State<HomePage> {
                                       (newScale - 1) /
                                       newScale /
                                       2;
-                                  print('放大===>$marginTop');
                                   painterKey.currentState
                                       ?.setMove(0, marginTop);
                                 }

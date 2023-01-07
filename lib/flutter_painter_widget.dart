@@ -9,6 +9,7 @@ import 'package:flutter_painter/draw/draw_edit.dart';
 import 'package:flutter_painter/draw/draw_image.dart';
 import 'package:flutter_painter/platform/painter_platform.dart';
 
+import 'draw/base_draw.dart';
 import 'draw/base_line.dart';
 import 'draw/draw_borad.dart';
 import 'draw/draw_eraser.dart';
@@ -104,6 +105,9 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   // 画板模式
   BoradMode _boradMode = BoradMode.Draw;
   BoradMode get boradMode => _boradMode;
+  // 图形样式
+  Shape _shape = Shape.Rectangle;
+  Shape get shape => _shape;
 
   // 画笔颜色
   Color _brushColor = Colors.red;
@@ -119,12 +123,16 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
   // 临时线
   BaseLine? _tempLine;
   // 临时编辑内容，标记选中赋值
+  BaseDraw? _tempDraw;
   var _tempEdit;
   // 编辑内容当前状态为移动
   bool tempEditMove = true;
   // 点击添加绘制内容
   var _clickAddDraw;
   dynamic get clickAddDraw => _clickAddDraw;
+  // 拖动添加绘制图形
+  var _dragAddShape;
+  dynamic get dragAddShape => _dragAddShape;
   // 获取点击贴图的缩放大小
   double get clickAddDrawScale => _clickAddDraw?.scale ?? 1.0;
   // 临时按下事件记录，防止事件错乱
@@ -206,6 +214,7 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
           _onPointerUp(event.buttons);
           // 这里是解决点击后再绘制会从点击的那个点开始绘制的问题，最终效果是多出一段距离来
           _tempLine = null;
+          _tempDraw = null;
         },
         onPointerCancel: (event) {
           // 这个回调彻底解决手指数异常的问题
@@ -217,6 +226,8 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
         onPointerMove: (event) {
           if (boradMode == BoradMode.Draw) {
             _handleOnPanUpdate(event.localPosition);
+          } else if (boradMode == BoradMode.Shape) {
+            _handleOnPanUpdateShape(event.localPosition);
           }
         },
         onPointerSignal: (event) {
@@ -397,7 +408,9 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
 
   /// 切换画板模式
   void _switchBoradMode(int buttons) {
-    if (_boradMode != BoradMode.Edit) {
+    if (_boradMode == BoradMode.Draw ||
+        _boradMode == BoradMode.Zoom ||
+        _boradMode == BoradMode.Crop) {
       // 如下几种情况切换到缩放模式
       // 1、按下点大于1 ==》缩放
       // 2、按下鼠标右键==> 移动
@@ -567,6 +580,33 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
     }
   }
 
+  /// 处理滑动开始事件
+  void _handleOnPanStartShape(Offset point) {
+    _tempDraw = dragAddShape.copy();
+    _tempDraw!.offset = point;
+    _tempDraw!.drawSize = Size.zero;
+    drawBoradListenable.add(_tempDraw!);
+  }
+
+  /// 处理滑动更新事件
+  void _handleOnPanUpdateShape(Offset point) {
+    Offset newPoint = getNewPoint(point);
+    if (_tempDraw == null) {
+      _handleOnPanStartShape(newPoint);
+    } else {
+      // 如果最后一个是相同的点就不添加了
+      // if (_tempLine!.linePath.last == newPoint) {
+      //   return;
+      // }
+      // _tempLine!.linePath.add(newPoint);
+      _tempDraw!.drawSize = Size(
+        newPoint.dx - _tempDraw!.offset.dx,
+        newPoint.dy - _tempDraw!.offset.dy,
+      );
+      drawBoradListenable.setLast(_tempDraw!);
+    }
+  }
+
   /// 获取新的坐标点
   Offset getNewPoint(Offset point) {
     _boradSize =
@@ -665,6 +705,13 @@ class FlutterPainterWidgetState extends State<FlutterPainterWidget>
         ..scale = scale
         ..clickAdd = clickAdd,
     );
+  }
+
+  /// 设置形状
+  /// [shape] 形状
+  void setDragShape(dynamic draw) {
+    _dragAddShape = draw;
+    setBoradMode(BoradMode.Shape);
   }
 
   /// 设置点击添加内容

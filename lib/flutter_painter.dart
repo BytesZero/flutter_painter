@@ -6,6 +6,7 @@ export 'draw/draw_borad.dart';
 export 'draw/draw_eraser.dart';
 export 'draw/draw_image.dart';
 export 'draw/draw_line.dart';
+export 'draw/draw_rect.dart';
 export 'draw/draw_text.dart';
 export 'flutter_painter_widget.dart';
 export 'platform/painter_platform.dart';

@@ -41,9 +41,20 @@ class DrawBorad extends CustomPainter {
 /// 画板模式
 enum BoradMode {
   Draw, // 绘制模式
+  Shape, // 图形模式
   Zoom, // 缩放模式
   Crop, // 裁剪模式
   Edit, // 编辑模式
+}
+
+/// 图形
+enum Shape {
+  Rectangle, // 矩形
+  Oval, // 椭圆形
+  Triangle, //三角形
+  Line, // 线
+  WavyLine, // 波浪线
+  ArrowLine, // 箭头线
 }
 
 /// 画板监听器
