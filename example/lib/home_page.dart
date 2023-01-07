@@ -64,6 +64,24 @@ class _HomePageState extends State<HomePage> {
     Shape.WavyLine,
     Shape.ArrowLine
   ];
+  // 图形 map
+  Map<Shape, BaseShape> shapeMap = {
+    Shape.Rectangle: DrawShapeRectangle(),
+    Shape.Triangle: DrawShapeTriangle(),
+    Shape.Oval: DrawShapeOval(),
+    Shape.Line: DrawShapeLine(),
+    Shape.WavyLine: DrawShapeWavyLine(),
+    Shape.ArrowLine: DrawShapeRectangle(),
+  };
+  // 图形 图标map
+  Map<Shape, IconData> shapeIconMap = {
+    Shape.Rectangle: Icons.rectangle_outlined,
+    Shape.Triangle: Icons.navigation_outlined,
+    Shape.Oval: Icons.circle_outlined,
+    Shape.Line: Icons.linear_scale,
+    Shape.WavyLine: Icons.line_axis,
+    Shape.ArrowLine: Icons.arrow_right_alt,
+  };
 
   // 图片资源列表
   List<String> imageList = [
@@ -195,7 +213,7 @@ class _HomePageState extends State<HomePage> {
                     Container(
                       width: 160,
                       height: height,
-                      color: Colors.red,
+                      color: Colors.white,
                     ),
                     Expanded(
                       child: FlutterPainterWidget(
@@ -228,39 +246,6 @@ class _HomePageState extends State<HomePage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          padding: EdgeInsets.all(4),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: shapeList.map((shape) {
-                              return GestureDetector(
-                                onTap: () {
-                                  selectShape = shape;
-                                  setState(() {});
-                                },
-                                child: Container(
-                                  height: 52,
-                                  width: 52,
-                                  margin: const EdgeInsets.all(6),
-                                  padding: const EdgeInsets.all(4),
-                                  child: Icon(
-                                    Icons.rectangle_outlined,
-                                    color: (selectShape != null &&
-                                            selectShape == shape)
-                                        ? selectColor
-                                        : Colors.grey,
-                                    size: 32,
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
                         AnimatedOpacity(
                           duration: Duration(milliseconds: 600),
                           opacity: 1,
@@ -279,6 +264,8 @@ class _HomePageState extends State<HomePage> {
                                     setState(() {});
                                     painterKey.currentState
                                         ?.setBrushColor(color);
+                                    // 更新图形
+                                    updateShape();
                                   },
                                   child: Container(
                                     height: 24,
@@ -315,6 +302,8 @@ class _HomePageState extends State<HomePage> {
                                   brushWidth = width;
                                   setState(() {});
                                   painterKey.currentState?.setBrushWidth(width);
+                                  // 更新图形
+                                  updateShape();
                                 },
                                 child: Container(
                                     height: 36,
@@ -427,6 +416,8 @@ class _HomePageState extends State<HomePage> {
                               heroTag: 'clear',
                               onPressed: () {
                                 painterKey.currentState?.clearDraw();
+                                selectShape = null;
+                                setState(() {});
                               },
                             ),
                             SizedBox(width: 2),
@@ -448,14 +439,8 @@ class _HomePageState extends State<HomePage> {
                                 color: selectColor,
                               ),
                               tooltip: '图形',
-                              heroTag: 'rect',
-                              onPressed: () {
-                                DrawRect rect = DrawRect()
-                                  ..color = selectColor
-                                  ..lineWidth = brushWidth;
-                                dynamic draw = rect;
-                                painterKey.currentState?.setDragShape(draw);
-                              },
+                              heroTag: 'shape',
+                              onPressed: () {},
                             ),
                             SizedBox(width: 2),
                             FloatingActionButton(
@@ -497,7 +482,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-                // 体脂
+                // 贴纸
                 Positioned(
                   right: 0,
                   bottom: MediaQuery.of(context).size.height / 2 - 90,
@@ -543,11 +528,60 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                   ),
-                )
+                ),
+                // 图形
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding: EdgeInsets.all(4),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: shapeList.map((shape) {
+                        return GestureDetector(
+                          onTap: () {
+                            selectShape = shape;
+                            setState(() {});
+                            // 更新图形
+                            updateShape();
+                          },
+                          child: Container(
+                            height: 52,
+                            width: 52,
+                            margin: const EdgeInsets.all(6),
+                            padding: const EdgeInsets.all(4),
+                            child: Icon(
+                              shapeIconMap[shape],
+                              color:
+                                  (selectShape != null && selectShape == shape)
+                                      ? selectColor
+                                      : Colors.grey,
+                              size: 32,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
               ],
             )),
       ),
     );
+  }
+
+  // 更新图形
+  void updateShape() {
+    if (selectShape != null) {
+      BaseShape? shape = shapeMap[selectShape];
+      shape!
+        ..color = selectColor
+        ..lineWidth = brushWidth;
+      painterKey.currentState?.setDragShape(shape);
+    }
   }
 
   /// 现实文字输入框
