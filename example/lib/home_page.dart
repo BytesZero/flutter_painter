@@ -61,7 +61,6 @@ class _HomePageState extends State<HomePage> {
     Shape.Triangle,
     Shape.Oval,
     Shape.Line,
-    Shape.WavyLine,
     Shape.ArrowLine
   ];
   // 图形 map
@@ -70,8 +69,7 @@ class _HomePageState extends State<HomePage> {
     Shape.Triangle: DrawShapeTriangle(),
     Shape.Oval: DrawShapeOval(),
     Shape.Line: DrawShapeLine(),
-    Shape.WavyLine: DrawShapeWavyLine(),
-    Shape.ArrowLine: DrawShapeRectangle(),
+    Shape.ArrowLine: DrawShapeLineArrow(),
   };
   // 图形 图标map
   Map<Shape, IconData> shapeIconMap = {
@@ -79,7 +77,6 @@ class _HomePageState extends State<HomePage> {
     Shape.Triangle: Icons.navigation_outlined,
     Shape.Oval: Icons.circle_outlined,
     Shape.Line: Icons.linear_scale,
-    Shape.WavyLine: Icons.line_axis,
     Shape.ArrowLine: Icons.arrow_right_alt,
   };
 
